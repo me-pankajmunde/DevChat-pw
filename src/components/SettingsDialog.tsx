@@ -74,23 +74,28 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
 
     if (!file.type.startsWith('image/')) {
       toast.error('Please select a valid image file')
+      e.target.value = ''
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size must be less than 5MB')
+      e.target.value = ''
       return
     }
 
     const reader = new FileReader()
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string
-      setCustomWallpaperUrl(imageUrl)
-      setWallpaper('custom')
-      toast.success('Custom wallpaper uploaded')
+      if (imageUrl) {
+        setCustomWallpaperUrl(imageUrl)
+        setWallpaper('custom')
+        toast.success('Custom wallpaper uploaded')
+      }
     }
     reader.onerror = () => {
       toast.error('Failed to read image file')
+      e.target.value = ''
     }
     reader.readAsDataURL(file)
   }
@@ -267,41 +272,46 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
               </SelectContent>
             </Select>
             <div className="grid grid-cols-4 gap-2 mt-2">
-              {Object.entries(wallpapers).map(([key, data]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => {
-                    if (key === 'custom' && !customWallpaperUrl) {
-                      fileInputRef.current?.click()
-                    } else {
-                      setWallpaper(key as Wallpaper)
-                    }
-                  }}
-                  className={`relative h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
-                    wallpaper === key ? 'border-primary ring-2 ring-primary/20' : 'border-border'
-                  }`}
-                  title={data.name}
-                  style={{
-                    backgroundColor: 'oklch(0.15 0.01 240)',
-                    ...(key === 'custom' && customWallpaperUrl ? getWallpaperStyle(key as Wallpaper, customWallpaperUrl) : getWallpaperStyle(key as Wallpaper)),
-                  }}
-                >
-                  {key === 'none' && (
-                    <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                      None
-                    </div>
-                  )}
-                  {key === 'custom' && !customWallpaperUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  )}
-                </button>
-              ))}
+              {Object.entries(wallpapers).map(([key, data]) => {
+                const wallpaperKey = key as Wallpaper
+                const isCustomWithImage = wallpaperKey === 'custom' && customWallpaperUrl
+                
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      if (wallpaperKey === 'custom' && !customWallpaperUrl) {
+                        fileInputRef.current?.click()
+                      } else {
+                        setWallpaper(wallpaperKey)
+                      }
+                    }}
+                    className={`relative h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
+                      wallpaper === wallpaperKey ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+                    }`}
+                    title={data.name}
+                    style={{
+                      backgroundColor: 'oklch(0.15 0.01 240)',
+                      ...(isCustomWithImage ? getWallpaperStyle('custom', customWallpaperUrl) : getWallpaperStyle(wallpaperKey)),
+                    }}
+                  >
+                    {wallpaperKey === 'none' && (
+                      <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                        None
+                      </div>
+                    )}
+                    {wallpaperKey === 'custom' && !customWallpaperUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-secondary/50">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
             </div>
 
-            {wallpaper === 'custom' && (
+            {(wallpaper === 'custom' || customWallpaperUrl) && (
               <div className="flex flex-col gap-2 mt-2 p-3 bg-secondary/50 rounded-md border border-border">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="custom-wallpaper" className="text-sm font-medium">
