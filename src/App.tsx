@@ -12,6 +12,7 @@ import { PaperPlaneRight, Trash, WarningCircle } from '@phosphor-icons/react'
 import { Message, ChatSettings } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
+import { applyTheme } from '@/lib/themes'
 import { toast } from 'sonner'
 
 function App() {
@@ -27,6 +28,12 @@ function App() {
   useEffect(() => {
     registerServiceWorker()
   }, [])
+
+  useEffect(() => {
+    if (settings?.theme) {
+      applyTheme(settings.theme)
+    }
+  }, [settings?.theme])
 
   useEffect(() => {
     if (autoScroll && scrollAreaRef.current) {
@@ -117,6 +124,13 @@ function App() {
     toast.success(`Model changed to ${model}`)
   }
 
+  const handleSettingsSave = (newSettings: ChatSettings) => {
+    setSettings(newSettings)
+    if (newSettings.theme) {
+      applyTheme(newSettings.theme)
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -150,7 +164,7 @@ function App() {
           >
             <Trash className="h-5 w-5" />
           </Button>
-          <SettingsDialog settings={settings} onSave={setSettings} />
+          <SettingsDialog settings={settings} onSave={handleSettingsSave} />
         </div>
       </header>
 
@@ -164,7 +178,7 @@ function App() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Configure your local OpenAI API endpoint and key to start chatting.
                 </p>
-                <SettingsDialog settings={settings} onSave={setSettings} />
+                <SettingsDialog settings={settings} onSave={handleSettingsSave} />
               </AlertDescription>
             </Alert>
           </div>

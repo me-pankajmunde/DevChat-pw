@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { Gear, CheckCircle, WarningCircle } from '@phosphor-icons/react'
 import { ChatSettings } from '@/lib/types'
 import { testConnection, fetchModels } from '@/lib/api'
+import { themes, applyTheme } from '@/lib/themes'
 
 interface SettingsDialogProps {
   settings: ChatSettings | null
@@ -18,6 +20,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [apiEndpoint, setApiEndpoint] = useState(settings?.apiEndpoint || 'http://127.0.0.1:5001/v1')
   const [apiKey, setApiKey] = useState(settings?.apiKey || 'YOUR_TOKEN')
   const [model, setModel] = useState(settings?.model || 'gpt-4o')
+  const [theme, setTheme] = useState(settings?.theme || 'cyber-teal')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [models, setModels] = useState<string[]>([])
@@ -50,8 +53,13 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey, model })
+    onSave({ apiEndpoint, apiKey, model, theme })
     setOpen(false)
+  }
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme)
+    applyTheme(newTheme)
   }
 
   return (
@@ -61,11 +69,11 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
           <Gear className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>API Settings</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
-            Configure your local OpenAI API endpoint and key
+            Configure your API and customize the app appearance
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
@@ -119,6 +127,55 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
               <p className="text-xs text-muted-foreground">Test connection to load models</p>
             )}
           </div>
+
+          <Separator className="my-2" />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="theme">Color Theme</Label>
+            <Select value={theme} onValueChange={handleThemeChange}>
+              <SelectTrigger id="theme">
+                <SelectValue placeholder="Select a theme" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(themes).map(([key, themeData]) => (
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border border-border" 
+                        style={{ backgroundColor: themeData.colors.primary }}
+                      />
+                      {themeData.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="grid grid-cols-4 gap-2 mt-2">
+              {Object.entries(themes).map(([key, themeData]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleThemeChange(key)}
+                  className={`relative h-12 rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
+                    theme === key ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+                  }`}
+                  title={themeData.name}
+                >
+                  <div className="absolute inset-0 flex">
+                    <div className="flex-1" style={{ backgroundColor: themeData.colors.background }} />
+                    <div className="flex-1" style={{ backgroundColor: themeData.colors.primary }} />
+                    <div className="flex-1" style={{ backgroundColor: themeData.colors.accent }} />
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose a color scheme that suits your preference
+            </p>
+          </div>
+
+          <Separator className="my-2" />
+
           <div className="flex gap-2">
             <Button
               variant="outline"
