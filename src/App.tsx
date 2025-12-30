@@ -193,7 +193,7 @@ function App() {
           </div>
         ) : (
           <ScrollArea className="h-full" ref={scrollAreaRef} onScroll={handleScroll}>
-            <div className="flex flex-col gap-4 p-6">
+            <div className="flex flex-col gap-3 p-4">
               {displayMessages.map((message) => (
                 <MessageComponent key={message.id} message={message} />
               ))}

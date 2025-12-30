@@ -26,13 +26,13 @@ export function Message({ message, isStreaming }: MessageProps) {
   return (
     <div
       className={cn(
-        'flex w-full gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300',
+        'flex w-full gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300',
         isUser ? 'justify-end' : 'justify-start'
       )}
     >
       {!isUser && (
-        <Avatar className={cn('h-10 w-10 shrink-0 ring-2 ring-border', getModelColor(message.model))}>
-          <AvatarFallback className={cn('bg-card', getModelColor(message.model))}>
+        <Avatar className={cn('h-7 w-7 shrink-0 ring-1 ring-border', getModelColor(message.model))}>
+          <AvatarFallback className={cn('bg-card text-xs', getModelColor(message.model))}>
             {getModelIcon(message.model)}
           </AvatarFallback>
         </Avatar>
@@ -40,14 +40,14 @@ export function Message({ message, isStreaming }: MessageProps) {
       
       <Card
         className={cn(
-          'max-w-[80%] p-4 relative',
+          'max-w-[80%] p-3 relative',
           isUser
             ? 'bg-primary text-primary-foreground'
             : 'bg-card text-card-foreground',
           isStreaming && 'streaming-gradient'
         )}
       >
-        <div className="prose prose-invert prose-sm max-w-none">
+        <div className="prose prose-invert prose-sm max-w-none text-sm">
           <Markdown
             components={{
               code: ({ className, children, ...props }: any) => {
@@ -57,15 +57,15 @@ export function Message({ message, isStreaming }: MessageProps) {
                 
                 if (!inline && match) {
                   return (
-                    <div className="code-block my-4">
-                      <div className="flex items-center justify-between px-4 py-2 bg-muted border-b border-border">
+                    <div className="code-block my-2">
+                      <div className="flex items-center justify-between px-3 py-1.5 bg-muted border-b border-border">
                         <span className="text-xs text-muted-foreground font-mono uppercase">
                           {match[1]}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="h-5 w-5"
                           onClick={() => handleCopyCode(codeString)}
                         >
                           {copiedCode === codeString ? (
@@ -75,7 +75,7 @@ export function Message({ message, isStreaming }: MessageProps) {
                           )}
                         </Button>
                       </div>
-                      <pre className="m-0">
+                      <pre className="m-0 text-xs">
                         <code className={className} {...props}>
                           {children}
                         </code>
@@ -87,7 +87,7 @@ export function Message({ message, isStreaming }: MessageProps) {
                 return (
                   <code
                     className={cn(
-                      'px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-sm',
+                      'px-1 py-0.5 rounded bg-muted text-foreground font-mono text-xs',
                       className
                     )}
                     {...props}
@@ -96,30 +96,30 @@ export function Message({ message, isStreaming }: MessageProps) {
                   </code>
                 )
               },
-              p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed">{children}</p>,
-              ul: ({ children }) => <ul className="mb-4 ml-4 list-disc">{children}</ul>,
-              ol: ({ children }) => <ol className="mb-4 ml-4 list-decimal">{children}</ol>,
-              li: ({ children }) => <li className="mb-1">{children}</li>,
+              p: ({ children }) => <p className="mb-2 last:mb-0 leading-normal">{children}</p>,
+              ul: ({ children }) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
+              ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
+              li: ({ children }) => <li className="mb-0.5">{children}</li>,
             }}
           >
             {message.content}
           </Markdown>
         </div>
-        <div className="mt-2 flex items-center gap-2 text-xs opacity-50">
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs opacity-40">
           <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
           {!isUser && message.model && (
             <>
               <span>•</span>
-              <span className="font-mono">{message.model}</span>
+              <span className="font-mono text-xs">{message.model}</span>
             </>
           )}
         </div>
       </Card>
 
       {isUser && (
-        <Avatar className="h-10 w-10 shrink-0 ring-2 ring-primary/50">
+        <Avatar className="h-7 w-7 shrink-0 ring-1 ring-primary/50">
           <AvatarFallback className="bg-primary text-primary-foreground">
-            <User weight="duotone" className="h-6 w-6" />
+            <User weight="duotone" className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
       )}
