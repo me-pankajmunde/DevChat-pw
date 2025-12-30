@@ -54,14 +54,23 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Receive message with ```language``` → Parse markdown → Apply VS Code Dark Plus theme → Render with syntax highlighting → Show copy button
 - **Success criteria**: Code blocks have language-specific syntax highlighting, line numbers visible, copy button works, supports 100+ programming languages
 
+### Image Attachments
+- **Functionality**: Attach images to messages for vision-based AI analysis
+- **Purpose**: Enable users to send images to vision-capable models for analysis, description, or code extraction
+- **Trigger**: Click image attachment button in message input area
+- **Progression**: Click image button → Select image file(s) → Preview thumbnails → Send with message → AI analyzes image(s) → Response includes image context
+- **Success criteria**: Images upload smoothly, multiple images supported, preview shows before sending, images display in chat history, base64 encoding works with OpenAI vision API
+
 ## Edge Case Handling
 - **Missing API Configuration**: Show prominent setup prompt with clear instructions instead of allowing message attempts
 - **API Connection Failure**: Display clear error message with troubleshooting hints (check endpoint, verify key, ensure API is running)
-- **Empty Messages**: Disable send button when input is empty to prevent API waste
+- **Empty Messages**: Disable send button when input is empty and no images attached to prevent API waste
 - **Long Responses**: Auto-scroll during streaming, allow manual scroll to stop auto-scrolling
 - **Malformed API Responses**: Gracefully handle errors and display user-friendly error messages
 - **Code Block Edge Cases**: Handle inline code, missing language specifiers, and unclosed code blocks. Inline code uses accent color for visibility, block code defaults to plaintext when no language specified
 - **Wallpaper Readability**: All wallpaper patterns use subtle opacity to ensure text remains readable
+- **Image Upload Validation**: Enforce 20MB file size limit, validate image formats (JPEG, PNG, GIF, WebP), show clear error messages for invalid files
+- **Multiple Images**: Support multiple image attachments per message, show file sizes, allow removal before sending
 
 ## Design Direction
 The design should feel like a developer's command center - technical, precise, and efficient. A dark-themed, terminal-inspired aesthetic with vibrant accent colors that suggest intelligence and energy. The interface should fade into the background, letting the conversation take center stage.
@@ -126,6 +135,8 @@ Animations should feel technical and precise - like systems activating and data 
   - Copy for copy to clipboard
   - Check for confirmation states
   - Warning for error states
+  - Image for image attachment
+  - X for removing attached images
   
 - **Spacing**: 
   - Container padding: p-6 (24px)

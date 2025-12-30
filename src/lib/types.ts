@@ -1,9 +1,17 @@
+export interface ImageAttachment {
+  id: string
+  url: string
+  name: string
+  size: number
+}
+
 export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: number
   model?: string
+  images?: ImageAttachment[]
 }
 
 export type MessageDensity = 'compact' | 'normal' | 'comfortable'
@@ -21,7 +29,16 @@ export interface ChatSettings {
   wallpaperBlur?: number
 }
 
+export type OpenAIMessageContent = string | Array<{
+  type: 'text' | 'image_url'
+  text?: string
+  image_url?: {
+    url: string
+    detail?: 'auto' | 'low' | 'high'
+  }
+}>
+
 export interface OpenAIMessage {
   role: 'user' | 'assistant' | 'system'
-  content: string
+  content: OpenAIMessageContent
 }

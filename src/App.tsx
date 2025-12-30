@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Message as MessageComponent } from '@/components/Message'
+import { ImageAttachment } from '@/components/ImageAttachment'
 import { SettingsDialog } from '@/components/SettingsDialog'
 import { ModelSelector } from '@/components/ModelSelector'
 import { Button } from '@/components/ui/button'
@@ -8,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
-import { PaperPlaneRight, Trash, WarningCircle } from '@phosphor-icons/react'
-import { Message, ChatSettings } from '@/lib/types'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, X } from '@phosphor-icons/react'
+import { Message, ChatSettings, ImageAttachment as ImageAttachmentType } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
 import { getWallpaperStyle } from '@/lib/wallpapers'
+import { fileToBase64, formatFileSize } from '@/lib/utils'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -23,8 +25,10 @@ function App() {
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
+  const [attachedImages, setAttachedImages] = useState<ImageAttachmentType[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [autoScroll, setAutoScroll] = useState(true)
 
   useEffect(() => {
@@ -54,26 +58,104 @@ function App() {
     }
   }
 
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const maxSize = 20 * 1024 * 1024
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+
+    for (const file of Array.from(files)) {
+      if (!validImageTypes.includes(file.type)) {
+        toast.error('Invalid file type', {
+          description: 'Only JPEG, PNG, GIF, and WebP images are supported'
+        })
+        continue
+      }
+
+      if (file.size > maxSize) {
+        toast.error('File too large', {
+          description: `${file.name} exceeds 20MB limit`
+        })
+        continue
+      }
+
+      try {
+        const base64 = await fileToBase64(file)
+        const newImage: ImageAttachmentType = {
+          id: `${Date.now()}-${Math.random()}`,
+          url: base64,
+          name: file.name,
+          size: file.size,
+        }
+        setAttachedImages((prev) => [...prev, newImage])
+      } catch (error) {
+        toast.error('Failed to process image', {
+          description: file.name
+        })
+      }
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveImage = (imageId: string) => {
+    setAttachedImages((prev) => prev.filter((img) => img.id !== imageId))
+  }
+
   const handleSend = async () => {
-    if (!input.trim() || !settings || isStreaming) return
+    if ((!input.trim() && attachedImages.length === 0) || !settings || isStreaming) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: input.trim() || '(Image attached)',
       timestamp: Date.now(),
+      images: attachedImages.length > 0 ? attachedImages : undefined,
     }
 
     setMessages((current) => [...(current || []), userMessage])
     setInput('')
+    const currentImages = [...attachedImages]
+    setAttachedImages([])
     setIsStreaming(true)
     setStreamingContent('')
     setAutoScroll(true)
 
-    const conversationMessages = (messages || []).concat(userMessage).map((m) => ({
-      role: m.role,
-      content: m.content,
-    }))
+    const conversationMessages = (messages || []).concat(userMessage).map((m) => {
+      if (m.images && m.images.length > 0) {
+        const contentParts: Array<{type: 'text' | 'image_url', text?: string, image_url?: {url: string, detail?: 'auto'}}> = []
+        
+        if (m.content) {
+          contentParts.push({
+            type: 'text',
+            text: m.content
+          })
+        }
+
+        m.images.forEach((img) => {
+          contentParts.push({
+            type: 'image_url',
+            image_url: {
+              url: img.url,
+              detail: 'auto'
+            }
+          })
+        })
+
+        return {
+          role: m.role,
+          content: contentParts
+        }
+      }
+
+      return {
+        role: m.role,
+        content: m.content,
+      }
+    })
 
     let fullContent = ''
 
@@ -221,25 +303,60 @@ function App() {
       </div>
 
       <div className="border-t border-border bg-card/50 backdrop-blur-sm p-4">
-        <div className="max-w-4xl mx-auto flex gap-2">
-          <Textarea
-            ref={textareaRef}
-            id="message-input"
-            placeholder={settings ? "Type your message... (Shift+Enter for new line)" : "Configure API settings first"}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={!settings || isStreaming}
-            className="min-h-[60px] max-h-[200px] resize-none"
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!settings || !input.trim() || isStreaming}
-            size="icon"
-            className="h-[60px] w-[60px] shrink-0"
-          >
-            <PaperPlaneRight className="h-5 w-5" weight="fill" />
-          </Button>
+        <div className="max-w-4xl mx-auto">
+          {attachedImages.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg border border-border">
+              {attachedImages.map((image) => (
+                <div key={image.id} className="relative">
+                  <ImageAttachment 
+                    image={image} 
+                    onRemove={() => handleRemoveImage(image.id)}
+                    showRemove
+                  />
+                  <div className="text-xs text-muted-foreground mt-1 px-1 truncate max-w-[120px]">
+                    {formatFileSize(image.size)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-[60px] w-[60px] shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!settings || isStreaming}
+            >
+              <ImageIcon className="h-5 w-5" />
+            </Button>
+            <Textarea
+              ref={textareaRef}
+              id="message-input"
+              placeholder={settings ? "Type your message... (Shift+Enter for new line)" : "Configure API settings first"}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={!settings || isStreaming}
+              className="min-h-[60px] max-h-[200px] resize-none"
+            />
+            <Button
+              onClick={handleSend}
+              disabled={!settings || (!input.trim() && attachedImages.length === 0) || isStreaming}
+              size="icon"
+              className="h-[60px] w-[60px] shrink-0"
+            >
+              <PaperPlaneRight className="h-5 w-5" weight="fill" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

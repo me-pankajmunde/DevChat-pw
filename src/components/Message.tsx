@@ -5,6 +5,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { Message as MessageType, MessageDensity } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { getModelIcon, getModelColor } from '@/lib/model-icons'
+import { ImageAttachment } from '@/components/ImageAttachment'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -78,6 +79,13 @@ export function Message({ message, isStreaming, density = 'normal' }: MessagePro
           isStreaming && 'streaming-gradient'
         )}
       >
+        {message.images && message.images.length > 0 && (
+          <div className={cn('flex flex-wrap gap-2', density === 'compact' ? 'mb-1' : 'mb-2')}>
+            {message.images.map((image) => (
+              <ImageAttachment key={image.id} image={image} />
+            ))}
+          </div>
+        )}
         <div className={cn('prose prose-invert max-w-none', classes.text)}>
           <Markdown
             components={{
