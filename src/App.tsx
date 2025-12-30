@@ -121,6 +121,17 @@ function App() {
     toast.success('Folder deleted')
   }
 
+  const renameFolder = (folderId: string, newName: string, newColor: string) => {
+    setFolders(current =>
+      (current || []).map(folder =>
+        folder.id === folderId
+          ? { ...folder, name: newName, color: newColor }
+          : folder
+      )
+    )
+    toast.success('Folder updated')
+  }
+
   const moveToFolder = (sessionId: string, folderId: string | undefined) => {
     setSessions(current =>
       (current || []).map(session =>
@@ -419,6 +430,7 @@ function App() {
               onRenameSession={renameSession}
               onCreateFolder={createFolder}
               onDeleteFolder={deleteFolder}
+              onRenameFolder={renameFolder}
               onMoveToFolder={moveToFolder}
               onUpdateTags={updateTags}
             />

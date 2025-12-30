@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SessionFolder } from '@/lib/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,8 @@ import { FolderPlus } from '@phosphor-icons/react'
 
 interface FolderDialogProps {
   onCreateFolder: (name: string, color: string) => void
+  onRenameFolder?: (folderId: string, newName: string, newColor: string) => void
+  folder?: SessionFolder
   trigger?: React.ReactNode
 }
 
@@ -22,14 +24,29 @@ const FOLDER_COLORS = [
   { name: 'Yellow', value: 'oklch(0.75 0.18 90)' },
 ]
 
-export function FolderDialog({ onCreateFolder, trigger }: FolderDialogProps) {
+export function FolderDialog({ onCreateFolder, onRenameFolder, folder, trigger }: FolderDialogProps) {
   const [open, setOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
   const [selectedColor, setSelectedColor] = useState(FOLDER_COLORS[0].value)
+  const isEditMode = !!folder
 
-  const handleCreate = () => {
+  useEffect(() => {
+    if (folder) {
+      setFolderName(folder.name)
+      setSelectedColor(folder.color || FOLDER_COLORS[0].value)
+    } else {
+      setFolderName('')
+      setSelectedColor(FOLDER_COLORS[0].value)
+    }
+  }, [folder, open])
+
+  const handleSubmit = () => {
     if (folderName.trim()) {
-      onCreateFolder(folderName.trim(), selectedColor)
+      if (isEditMode && folder && onRenameFolder) {
+        onRenameFolder(folder.id, folderName.trim(), selectedColor)
+      } else {
+        onCreateFolder(folderName.trim(), selectedColor)
+      }
       setFolderName('')
       setSelectedColor(FOLDER_COLORS[0].value)
       setOpen(false)
@@ -48,7 +65,7 @@ export function FolderDialog({ onCreateFolder, trigger }: FolderDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Folder</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Folder' : 'Create New Folder'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -60,7 +77,7 @@ export function FolderDialog({ onCreateFolder, trigger }: FolderDialogProps) {
               onChange={(e) => setFolderName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  handleCreate()
+                  handleSubmit()
                 }
               }}
               autoFocus
@@ -95,8 +112,8 @@ export function FolderDialog({ onCreateFolder, trigger }: FolderDialogProps) {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!folderName.trim()}>
-            Create Folder
+          <Button onClick={handleSubmit} disabled={!folderName.trim()}>
+            {isEditMode ? 'Save Changes' : 'Create Folder'}
           </Button>
         </div>
       </DialogContent>

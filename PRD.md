@@ -27,11 +27,11 @@ This is a straightforward chat interface with settings management, message histo
 - **Success criteria**: Messages persist across sessions, responses stream smoothly, code blocks are properly formatted
 
 ### Session Management
-- **Functionality**: Create, switch, rename, and delete chat sessions with independent conversation histories
-- **Purpose**: Organize multiple conversations and maintain separate contexts for different tasks or topics
+- **Functionality**: Create, switch, rename, and delete chat sessions with independent conversation histories, organize sessions into color-coded folders, and filter by tags
+- **Purpose**: Organize multiple conversations and maintain separate contexts for different tasks or topics with advanced organization capabilities
 - **Trigger**: Click new chat button in sidebar, or select existing session from history
-- **Progression**: Click new chat → Session created with "New Chat" title → First message auto-generates descriptive title → Switch between sessions via sidebar → Rename via edit icon → Delete via trash icon with confirmation
-- **Success criteria**: Each session maintains independent message history, sessions persist between page loads, titles update automatically from first message, search filters sessions by title
+- **Progression**: Click new chat → Session created with "New Chat" title → First message auto-generates descriptive title → Switch between sessions via sidebar → Rename via edit icon → Delete via trash icon with confirmation → Create folders with custom colors → Rename/recolor folders → Move sessions between folders → Add/remove tags → Filter by tags
+- **Success criteria**: Each session maintains independent message history, sessions persist between page loads, titles update automatically from first message, search filters sessions by title, folders maintain custom colors and names, folder reorganization is intuitive, tag filtering works in real-time
 
 ### Message History
 - **Functionality**: Display conversation history with user and AI messages within the current session
@@ -81,6 +81,8 @@ This is a straightforward chat interface with settings management, message histo
 - **Session Edge Cases**: Handle deleting the current session by auto-selecting another, prevent deleting last session without creating a new one, clear input and attachments when switching sessions
 - **Empty Sessions**: Show appropriate empty state for new sessions, auto-generate title from first message content
 - **Session Search**: Filter sessions in real-time as user types, show "no results" state when search has no matches
+- **Folder Management**: Allow folder renaming and color customization, maintain folder state when deleting folders (sessions move to uncategorized), preserve folder expand/collapse state during session
+- **Tag Filtering**: Support multiple tag selection for filtering, show all sessions when no tags selected, combine tag filtering with search functionality
 
 ## Design Direction
 The design should feel like a developer's command center - technical, precise, and efficient. A dark-themed, terminal-inspired aesthetic with vibrant accent colors that suggest intelligence and energy. The interface should fade into the background, letting the conversation take center stage.
@@ -122,6 +124,9 @@ Animations should feel technical and precise - like systems activating and data 
   - Separator for visual breaks between message groups
   - Select for theme, model, message density, and wallpaper choices
   - Sidebar component for session history and management
+  - Folder organization with custom color selection (8 colors: Blue, Green, Orange, Purple, Pink, Red, Teal, Yellow)
+  - Tag management system for flexible session categorization
+  - Folder rename and color customization dialog
   
 - **Customizations**: 
   - Custom markdown renderer with react-syntax-highlighter using VS Code Dark Plus theme
@@ -135,6 +140,9 @@ Animations should feel technical and precise - like systems activating and data 
   - Session sidebar with collapsible/expandable functionality
   - Inline session title editing with save/cancel actions
   - Session search with real-time filtering
+  - Folder creation with color picker (8 preset colors)
+  - Folder editing dialog for renaming and color changes
+  - Tag badges with filtering capability
   
 - **States**: 
   - Buttons: Rest (subtle border), Hover (accent glow), Active (pressed inset), Disabled (muted with reduced opacity)
@@ -157,6 +165,11 @@ Animations should feel technical and precise - like systems activating and data 
   - ChatCircle for session indicators
   - MagnifyingGlass for session search
   - Sidebar for toggling sidebar visibility
+  - Folder/FolderOpen for folder indicators
+  - FolderPlus for creating new folders
+  - Tag for tag management
+  - CaretRight/CaretDown for folder expand/collapse
+  - DotsThree for dropdown menus
   
 - **Spacing**: 
   - Container padding: p-6 (24px)

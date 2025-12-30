@@ -41,6 +41,7 @@ interface SessionSidebarProps {
   onRenameSession: (sessionId: string, newTitle: string) => void
   onCreateFolder: (name: string, color: string) => void
   onDeleteFolder: (folderId: string) => void
+  onRenameFolder: (folderId: string, newName: string, newColor: string) => void
   onMoveToFolder: (sessionId: string, folderId: string | undefined) => void
   onUpdateTags: (sessionId: string, tags: string[]) => void
 }
@@ -55,6 +56,7 @@ export function SessionSidebar({
   onRenameSession,
   onCreateFolder,
   onDeleteFolder,
+  onRenameFolder,
   onMoveToFolder,
   onUpdateTags
 }: SessionSidebarProps) {
@@ -63,6 +65,7 @@ export function SessionSidebar({
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['uncategorized']))
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
 
   const handleStartEdit = (session: ChatSession) => {
     setEditingSessionId(session.id)
@@ -339,7 +342,7 @@ export function SessionSidebar({
                 const isExpanded = expandedFolders.has(folder.id)
                 
                 return (
-                  <div key={folder.id} className="mb-2">
+                  <div key={folder.id} className="mb-2 group">
                     <div className="flex items-center gap-2 px-2 py-1.5">
                       <Button
                         variant="ghost"
@@ -365,13 +368,25 @@ export function SessionSidebar({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <DotsThree className="h-4 w-4" weight="bold" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <FolderDialog 
+                            folder={folder}
+                            onCreateFolder={onCreateFolder}
+                            onRenameFolder={onRenameFolder}
+                            trigger={
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <PencilSimple className="h-4 w-4 mr-2" />
+                                Edit Folder
+                              </DropdownMenuItem>
+                            }
+                          />
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => {
