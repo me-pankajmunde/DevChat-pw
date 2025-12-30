@@ -75,7 +75,12 @@ export const wallpapers: Record<Wallpaper, { name: string; pattern: string }> = 
   },
 }
 
-export function getWallpaperStyle(wallpaper: Wallpaper = 'none', customImageUrl?: string): React.CSSProperties {
+export function getWallpaperStyle(
+  wallpaper: Wallpaper = 'none', 
+  customImageUrl?: string,
+  opacity: number = 1,
+  blur: number = 0
+): React.CSSProperties {
   if (wallpaper === 'custom' && customImageUrl) {
     return {
       backgroundImage: `url(${customImageUrl})`,
@@ -83,6 +88,8 @@ export function getWallpaperStyle(wallpaper: Wallpaper = 'none', customImageUrl?
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       backgroundAttachment: 'fixed',
+      opacity,
+      filter: blur > 0 ? `blur(${blur}px)` : undefined,
     }
   }
 
@@ -109,5 +116,7 @@ export function getWallpaperStyle(wallpaper: Wallpaper = 'none', customImageUrl?
     backgroundImage: wallpaperData.pattern,
     backgroundSize: baseSize,
     backgroundPosition: basePosition,
+    opacity,
+    filter: blur > 0 ? `blur(${blur}px)` : undefined,
   }
 }

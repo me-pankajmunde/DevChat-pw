@@ -17,6 +17,8 @@ export interface ChatSettings {
   messageDensity?: MessageDensity
   wallpaper?: Wallpaper
   customWallpaperUrl?: string
+  wallpaperOpacity?: number
+  wallpaperBlur?: number
 }
 
 export interface OpenAIMessage {

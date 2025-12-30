@@ -170,7 +170,7 @@ function App() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden relative" style={settings?.wallpaper && settings.wallpaper !== 'none' ? getWallpaperStyle(settings.wallpaper, settings.customWallpaperUrl) : {}}>
+      <div className="flex-1 overflow-hidden relative" style={settings?.wallpaper && settings.wallpaper !== 'none' ? getWallpaperStyle(settings.wallpaper, settings.customWallpaperUrl, settings.wallpaperOpacity, settings.wallpaperBlur) : {}}>
         {!settings ? (
           <div className="flex items-center justify-center h-full p-6">
             <Alert className="max-w-md">

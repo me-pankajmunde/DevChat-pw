@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Slider } from '@/components/ui/slider'
 import { Separator } from '@/components/ui/separator'
 import { Gear, CheckCircle, WarningCircle, Image as ImageIcon, X } from '@phosphor-icons/react'
 import { ChatSettings, MessageDensity, Wallpaper } from '@/lib/types'
@@ -26,6 +27,8 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [messageDensity, setMessageDensity] = useState<MessageDensity>(settings?.messageDensity || 'normal')
   const [wallpaper, setWallpaper] = useState<Wallpaper>(settings?.wallpaper || 'none')
   const [customWallpaperUrl, setCustomWallpaperUrl] = useState<string>(settings?.customWallpaperUrl || '')
+  const [wallpaperOpacity, setWallpaperOpacity] = useState<number>(settings?.wallpaperOpacity ?? 1)
+  const [wallpaperBlur, setWallpaperBlur] = useState<number>(settings?.wallpaperBlur ?? 0)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [models, setModels] = useState<string[]>([])
@@ -59,7 +62,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper, customWallpaperUrl })
+    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper, customWallpaperUrl, wallpaperOpacity, wallpaperBlur })
     setOpen(false)
   }
 
@@ -363,6 +366,56 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
                 <p className="text-xs text-muted-foreground">
                   Upload an image (max 5MB). Supports JPG, PNG, GIF, WebP.
                 </p>
+              </div>
+            )}
+
+            {wallpaper !== 'none' && (
+              <div className="flex flex-col gap-4 mt-3 p-3 bg-secondary/30 rounded-md border border-border">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="wallpaper-opacity" className="text-sm font-medium">
+                      Opacity
+                    </Label>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {Math.round(wallpaperOpacity * 100)}%
+                    </span>
+                  </div>
+                  <Slider
+                    id="wallpaper-opacity"
+                    min={0.1}
+                    max={1}
+                    step={0.05}
+                    value={[wallpaperOpacity]}
+                    onValueChange={(value) => setWallpaperOpacity(value[0])}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Adjust wallpaper transparency
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="wallpaper-blur" className="text-sm font-medium">
+                      Blur
+                    </Label>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {wallpaperBlur}px
+                    </span>
+                  </div>
+                  <Slider
+                    id="wallpaper-blur"
+                    min={0}
+                    max={20}
+                    step={1}
+                    value={[wallpaperBlur]}
+                    onValueChange={(value) => setWallpaperBlur(value[0])}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add blur effect to wallpaper
+                  </p>
+                </div>
               </div>
             )}
             
