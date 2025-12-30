@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Message as MessageType } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { getModelIcon, getModelColor } from '@/lib/model-icons'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Copy, Check } from '@phosphor-icons/react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Copy, Check, User } from '@phosphor-icons/react'
 
 interface MessageProps {
   message: MessageType
@@ -24,13 +26,21 @@ export function Message({ message, isStreaming }: MessageProps) {
   return (
     <div
       className={cn(
-        'flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300',
+        'flex w-full gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300',
         isUser ? 'justify-end' : 'justify-start'
       )}
     >
+      {!isUser && (
+        <Avatar className={cn('h-10 w-10 shrink-0 ring-2 ring-border', getModelColor(message.model))}>
+          <AvatarFallback className={cn('bg-card', getModelColor(message.model))}>
+            {getModelIcon(message.model)}
+          </AvatarFallback>
+        </Avatar>
+      )}
+      
       <Card
         className={cn(
-          'max-w-[85%] p-4 relative',
+          'max-w-[80%] p-4 relative',
           isUser
             ? 'bg-primary text-primary-foreground'
             : 'bg-card text-card-foreground',
@@ -105,6 +115,14 @@ export function Message({ message, isStreaming }: MessageProps) {
           )}
         </div>
       </Card>
+
+      {isUser && (
+        <Avatar className="h-10 w-10 shrink-0 ring-2 ring-primary/50">
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            <User weight="duotone" className="h-6 w-6" />
+          </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   )
 }
