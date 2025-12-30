@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
+import { useState } from 'react'
+import Markdown from 'react-markdown'
 import { Message as MessageType } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { getModelIcon, getModelColor } from '@/lib/model-icons'
@@ -48,7 +48,7 @@ export function Message({ message, isStreaming }: MessageProps) {
         )}
       >
         <div className="prose prose-invert prose-sm max-w-none">
-          <ReactMarkdown
+          <Markdown
             components={{
               code: ({ className, children, ...props }: any) => {
                 const match = /language-(\w+)/.exec(className || '')
@@ -103,7 +103,7 @@ export function Message({ message, isStreaming }: MessageProps) {
             }}
           >
             {message.content}
-          </ReactMarkdown>
+          </Markdown>
         </div>
         <div className="mt-2 flex items-center gap-2 text-xs opacity-50">
           <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
