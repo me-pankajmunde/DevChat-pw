@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Gear, CheckCircle, WarningCircle } from '@phosphor-icons/react'
 import { ChatSettings } from '@/lib/types'
-import { testConnection } from '@/lib/api'
+import { testConnection, fetchModels } from '@/lib/api'
 
 interface SettingsDialogProps {
   settings: ChatSettings | null
@@ -19,6 +20,21 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [model, setModel] = useState(settings?.model || 'gpt-4o')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
+  const [models, setModels] = useState<string[]>([])
+  const [loadingModels, setLoadingModels] = useState(false)
+
+  useEffect(() => {
+    if (open && apiEndpoint && apiKey) {
+      loadAvailableModels()
+    }
+  }, [open, apiEndpoint, apiKey])
+
+  const loadAvailableModels = async () => {
+    setLoadingModels(true)
+    const availableModels = await fetchModels(apiEndpoint, apiKey)
+    setModels(availableModels)
+    setLoadingModels(false)
+  }
 
   const handleTest = async () => {
     setTesting(true)
@@ -27,6 +43,10 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
     const result = await testConnection(apiEndpoint, apiKey)
     setTestResult(result ? 'success' : 'error')
     setTesting(false)
+
+    if (result) {
+      await loadAvailableModels()
+    }
   }
 
   const handleSave = () => {
@@ -70,12 +90,34 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="model">Model</Label>
-            <Input
-              id="model"
-              placeholder="gpt-4o"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-            />
+            {models.length > 0 ? (
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger id="model">
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {models.map((modelId) => (
+                    <SelectItem key={modelId} value={modelId}>
+                      {modelId}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                id="model"
+                placeholder="gpt-4o"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                disabled={loadingModels}
+              />
+            )}
+            {loadingModels && (
+              <p className="text-xs text-muted-foreground">Loading models...</p>
+            )}
+            {models.length === 0 && !loadingModels && apiEndpoint && apiKey && (
+              <p className="text-xs text-muted-foreground">Test connection to load models</p>
+            )}
           </div>
           <div className="flex gap-2">
             <Button

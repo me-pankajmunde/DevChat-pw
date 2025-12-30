@@ -74,3 +74,28 @@ export async function testConnection(endpoint: string, apiKey: string): Promise<
     return false
   }
 }
+
+export async function fetchModels(endpoint: string, apiKey: string): Promise<string[]> {
+  try {
+    const response = await fetch(`${endpoint}/models`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch models: ${response.status}`)
+    }
+
+    const data = await response.json()
+    
+    if (data.data && Array.isArray(data.data)) {
+      return data.data.map((model: any) => model.id)
+    }
+    
+    return []
+  } catch (error) {
+    console.error('Error fetching models:', error)
+    return []
+  }
+}
