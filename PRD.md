@@ -47,12 +47,12 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Open settings → Choose wallpaper pattern → Preview → Save → Pattern applied to chat background
 - **Success criteria**: Pattern displays correctly, doesn't interfere with message readability, persists between sessions
 
-### Code Block Rendering
-- **Functionality**: Detect and render code blocks with syntax highlighting
-- **Purpose**: Make code readable and distinguishable from regular text
-- **Trigger**: AI response contains code blocks
-- **Progression**: Receive message with ```code``` → Parse markdown → Apply syntax highlighting → Render
-- **Success criteria**: Code blocks are clearly formatted, copy button available, syntax highlighting works
+### Code Block Rendering with Syntax Highlighting
+- **Functionality**: Detect and render code blocks with professional syntax highlighting using react-syntax-highlighter
+- **Purpose**: Make code highly readable with language-specific color coding and proper formatting
+- **Trigger**: AI response contains code blocks with language identifiers (e.g., ```javascript, ```python)
+- **Progression**: Receive message with ```language``` → Parse markdown → Apply VS Code Dark Plus theme → Render with syntax highlighting → Show copy button
+- **Success criteria**: Code blocks have language-specific syntax highlighting, line numbers visible, copy button works, supports 100+ programming languages
 
 ## Edge Case Handling
 - **Missing API Configuration**: Show prominent setup prompt with clear instructions instead of allowing message attempts
@@ -60,7 +60,7 @@ This is a straightforward chat interface with settings management, message histo
 - **Empty Messages**: Disable send button when input is empty to prevent API waste
 - **Long Responses**: Auto-scroll during streaming, allow manual scroll to stop auto-scrolling
 - **Malformed API Responses**: Gracefully handle errors and display user-friendly error messages
-- **Code Block Edge Cases**: Handle inline code, missing language specifiers, and unclosed code blocks
+- **Code Block Edge Cases**: Handle inline code, missing language specifiers, and unclosed code blocks. Inline code uses accent color for visibility, block code defaults to plaintext when no language specified
 - **Wallpaper Readability**: All wallpaper patterns use subtle opacity to ensure text remains readable
 
 ## Design Direction
@@ -104,7 +104,10 @@ Animations should feel technical and precise - like systems activating and data 
   - Select for theme, model, message density, and wallpaper choices
   
 - **Customizations**: 
-  - Custom markdown renderer for code blocks with copy button
+  - Custom markdown renderer with react-syntax-highlighter using VS Code Dark Plus theme
+  - Support for bold, italic, links, headings, blockquotes, lists, and tables
+  - Inline code highlighting with accent color for visibility
+  - Code blocks with language badges, copy buttons, and professional syntax highlighting
   - Streaming text component that animates token arrival
   - Custom empty state illustration for first-time experience
   - Wallpaper system with 8 pattern options (none, dots, grid, waves, geometric, bubbles, diagonal, hexagon)
