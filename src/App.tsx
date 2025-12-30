@@ -92,6 +92,7 @@ function App() {
         role: 'assistant',
         content: fullContent,
         timestamp: Date.now(),
+        model: settings.model,
       }
       setMessages((current) => [...(current || []), assistantMessage])
     }
@@ -189,6 +190,7 @@ function App() {
                     role: 'assistant',
                     content: streamingContent,
                     timestamp: Date.now(),
+                    model: settings.model,
                   }}
                   isStreaming
                 />

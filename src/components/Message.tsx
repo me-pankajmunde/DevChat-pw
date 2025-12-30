@@ -95,8 +95,14 @@ export function Message({ message, isStreaming }: MessageProps) {
             {message.content}
           </ReactMarkdown>
         </div>
-        <div className="mt-2 text-xs opacity-50">
-          {new Date(message.timestamp).toLocaleTimeString()}
+        <div className="mt-2 flex items-center gap-2 text-xs opacity-50">
+          <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
+          {!isUser && message.model && (
+            <>
+              <span>•</span>
+              <span className="font-mono">{message.model}</span>
+            </>
+          )}
         </div>
       </Card>
     </div>
