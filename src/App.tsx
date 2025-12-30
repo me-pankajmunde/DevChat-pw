@@ -459,7 +459,7 @@ function App() {
             </TooltipProvider>
             <div className="min-w-0">
               <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
-                {currentSession?.title || 'Local AI Chat'}
+                {currentSession?.title || 'DevChat Local'}
               </h1>
               <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Developer-focused OpenAI API client</p>
             </div>

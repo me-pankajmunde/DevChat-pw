@@ -1,6 +1,6 @@
 {
-  "name": "Local AI Chat",
-  "short_name": "AI Chat",
+  "name": "DevChat Local",
+  "short_name": "DevChat",
   "description": "Developer-focused OpenAI API client for local and custom endpoints",
   "start_url": "/",
   "display": "standalone",

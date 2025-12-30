@@ -1,4 +1,4 @@
-# Planning Guide
+# DevChat Local - Product Requirements Document
 
 A Progressive Web App that enables developers to chat with their local OpenAI API using a custom API key, providing a clean, distraction-free interface for AI-assisted development workflows.
 

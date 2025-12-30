@@ -1,23 +1,46 @@
-# ✨ Welcome to Your Spark Template!
-You've just launched your brand-new Spark Template Codespace — everything’s fired up and ready for you to explore, build, and create with Spark!
+# DevChat Local
 
-This template is your blank canvas. It comes with a minimal setup to help you get started quickly with Spark development.
+A developer-focused Progressive Web App for chatting with local and custom OpenAI API endpoints.
 
-🚀 What's Inside?
-- A clean, minimal Spark environment
-- Pre-configured for local development
-- Ready to scale with your ideas
-  
-🧠 What Can You Do?
+## Features
 
-Right now, this is just a starting point — the perfect place to begin building and testing your Spark applications.
+- 🔌 **Custom API Endpoints** - Connect to any OpenAI-compatible API (local or remote)
+- 💬 **Multi-Session Chat** - Organize conversations with folders, tags, and search
+- 🖼️ **Image Attachments** - Send images to vision-capable models
+- 🎨 **Markdown & Code** - Syntax highlighting with 100+ languages supported
+- 🌈 **Customizable Themes** - Multiple color schemes and chat wallpapers
+- 📱 **Progressive Web App** - Install and use offline
+- 🗂️ **Session Management** - Create, rename, organize, and search chat sessions
+- 🏷️ **Tags & Folders** - Organize chats with color-coded folders and tags
+- ⚡ **Streaming Responses** - Real-time token streaming for fast feedback
 
-🧹 Just Exploring?
-No problem! If you were just checking things out and don’t need to keep this code:
+## Getting Started
 
-- Simply delete your Spark.
-- Everything will be cleaned up — no traces left behind.
+1. Open the app and click the settings icon
+2. Configure your API endpoint (e.g., `http://127.0.0.1:5001/v1`)
+3. Enter your API key
+4. Select a model from the dropdown
+5. Start chatting!
 
-📄 License For Spark Template Resources 
+## API Configuration
 
-The Spark Template files and resources from GitHub are licensed under the terms of the MIT license, Copyright GitHub, Inc.
+DevChat Local works with any OpenAI-compatible API endpoint:
+
+```bash
+# Example: Local API
+Endpoint: http://127.0.0.1:5001/v1
+Key: YOUR_TOKEN
+Model: gpt-4o (or any model from /v1/models)
+```
+
+## Built With
+
+- React + TypeScript
+- Tailwind CSS + shadcn/ui
+- Vite
+- Phosphor Icons
+- React Markdown + Syntax Highlighter
+
+## License
+
+MIT License - See LICENSE file for details
