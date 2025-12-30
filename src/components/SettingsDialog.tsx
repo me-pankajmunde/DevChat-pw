@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Gear, CheckCircle, WarningCircle } from '@phosphor-icons/react'
+import { Gear, CheckCircle, WarningCircle, Image as ImageIcon, X } from '@phosphor-icons/react'
 import { ChatSettings, MessageDensity, Wallpaper } from '@/lib/types'
 import { testConnection, fetchModels } from '@/lib/api'
 import { themes, applyTheme } from '@/lib/themes'
 import { wallpapers, getWallpaperStyle } from '@/lib/wallpapers'
+import { toast } from 'sonner'
 
 interface SettingsDialogProps {
   settings: ChatSettings | null
@@ -24,10 +25,12 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [theme, setTheme] = useState(settings?.theme || 'cyber-teal')
   const [messageDensity, setMessageDensity] = useState<MessageDensity>(settings?.messageDensity || 'normal')
   const [wallpaper, setWallpaper] = useState<Wallpaper>(settings?.wallpaper || 'none')
+  const [customWallpaperUrl, setCustomWallpaperUrl] = useState<string>(settings?.customWallpaperUrl || '')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [models, setModels] = useState<string[]>([])
   const [loadingModels, setLoadingModels] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (open && apiEndpoint && apiKey) {
@@ -56,13 +59,49 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper })
+    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper, customWallpaperUrl })
     setOpen(false)
   }
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme)
     applyTheme(newTheme)
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string
+      setCustomWallpaperUrl(imageUrl)
+      setWallpaper('custom')
+      toast.success('Custom wallpaper uploaded')
+    }
+    reader.onerror = () => {
+      toast.error('Failed to read image file')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveCustomWallpaper = () => {
+    setCustomWallpaperUrl('')
+    setWallpaper('none')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+    toast.success('Custom wallpaper removed')
   }
 
   return (
@@ -232,14 +271,20 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setWallpaper(key as Wallpaper)}
+                  onClick={() => {
+                    if (key === 'custom' && !customWallpaperUrl) {
+                      fileInputRef.current?.click()
+                    } else {
+                      setWallpaper(key as Wallpaper)
+                    }
+                  }}
                   className={`relative h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
                     wallpaper === key ? 'border-primary ring-2 ring-primary/20' : 'border-border'
                   }`}
                   title={data.name}
                   style={{
                     backgroundColor: 'oklch(0.15 0.01 240)',
-                    ...getWallpaperStyle(key as Wallpaper),
+                    ...(key === 'custom' && customWallpaperUrl ? getWallpaperStyle(key as Wallpaper, customWallpaperUrl) : getWallpaperStyle(key as Wallpaper)),
                   }}
                 >
                   {key === 'none' && (
@@ -247,11 +292,72 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
                       None
                     </div>
                   )}
+                  {key === 'custom' && !customWallpaperUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
+
+            {wallpaper === 'custom' && (
+              <div className="flex flex-col gap-2 mt-2 p-3 bg-secondary/50 rounded-md border border-border">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="custom-wallpaper" className="text-sm font-medium">
+                    Custom Image
+                  </Label>
+                  {customWallpaperUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveCustomWallpaper}
+                      className="h-7 px-2"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  id="custom-wallpaper"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                >
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  {customWallpaperUrl ? 'Change Image' : 'Upload Image'}
+                </Button>
+                {customWallpaperUrl && (
+                  <div className="relative w-full h-20 rounded-md overflow-hidden border border-border">
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: `url(${customWallpaperUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Upload an image (max 5MB). Supports JPG, PNG, GIF, WebP.
+                </p>
+              </div>
+            )}
+            
             <p className="text-xs text-muted-foreground">
-              Add a subtle background pattern to the chat area
+              Add a subtle background pattern or custom image to the chat area
             </p>
           </div>
 

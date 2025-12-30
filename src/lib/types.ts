@@ -7,7 +7,7 @@ export interface Message {
 }
 
 export type MessageDensity = 'compact' | 'normal' | 'comfortable'
-export type Wallpaper = 'none' | 'dots' | 'grid' | 'waves' | 'geometric' | 'bubbles' | 'diagonal' | 'hexagon'
+export type Wallpaper = 'none' | 'dots' | 'grid' | 'waves' | 'geometric' | 'bubbles' | 'diagonal' | 'hexagon' | 'custom'
 
 export interface ChatSettings {
   apiEndpoint: string
@@ -16,6 +16,7 @@ export interface ChatSettings {
   theme?: string
   messageDensity?: MessageDensity
   wallpaper?: Wallpaper
+  customWallpaperUrl?: string
 }
 
 export interface OpenAIMessage {

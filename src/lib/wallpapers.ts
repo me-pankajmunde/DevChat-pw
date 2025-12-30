@@ -69,9 +69,23 @@ export const wallpapers: Record<Wallpaper, { name: string; pattern: string }> = 
       linear-gradient(-120deg, transparent 75%, oklch(1 0 0 / 0.02) 75%)
     `,
   },
+  custom: {
+    name: 'Custom Image',
+    pattern: '',
+  },
 }
 
-export function getWallpaperStyle(wallpaper: Wallpaper = 'none'): React.CSSProperties {
+export function getWallpaperStyle(wallpaper: Wallpaper = 'none', customImageUrl?: string): React.CSSProperties {
+  if (wallpaper === 'custom' && customImageUrl) {
+    return {
+      backgroundImage: `url(${customImageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+    }
+  }
+
   const wallpaperData = wallpapers[wallpaper]
   
   if (wallpaper === 'none' || !wallpaperData.pattern) {
