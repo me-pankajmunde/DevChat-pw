@@ -17,7 +17,8 @@ import {
   CaretRight,
   CaretDown,
   Tag as TagIcon,
-  DotsThree
+  DotsThree,
+  DotsSixVertical
 } from '@phosphor-icons/react'
 import {
   DropdownMenu,
@@ -66,6 +67,8 @@ export function SessionSidebar({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['uncategorized']))
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
+  const [draggedSessionId, setDraggedSessionId] = useState<string | null>(null)
+  const [dropTargetFolderId, setDropTargetFolderId] = useState<string | null>(null)
 
   const handleStartEdit = (session: ChatSession) => {
     setEditingSessionId(session.id)
@@ -103,6 +106,39 @@ export function SessionSidebar({
     )
   }
 
+  const handleDragStart = (e: React.DragEvent, sessionId: string) => {
+    setDraggedSessionId(sessionId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', sessionId)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedSessionId(null)
+    setDropTargetFolderId(null)
+  }
+
+  const handleDragOver = (e: React.DragEvent, folderId: string | undefined) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDropTargetFolderId(folderId || 'uncategorized')
+  }
+
+  const handleDragLeave = () => {
+    setDropTargetFolderId(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, folderId: string | undefined) => {
+    e.preventDefault()
+    const sessionId = e.dataTransfer.getData('text/plain')
+    
+    if (sessionId && draggedSessionId === sessionId) {
+      onMoveToFolder(sessionId, folderId)
+    }
+    
+    setDraggedSessionId(null)
+    setDropTargetFolderId(null)
+  }
+
   const allTags = Array.from(
     new Set(sessions.flatMap(s => s.tags || []))
   ).sort()
@@ -132,13 +168,18 @@ export function SessionSidebar({
     const isActive = currentSessionId === session.id
     const messageCount = session.messages.length
     const lastMessageTime = session.updatedAt
+    const isDragging = draggedSessionId === session.id
 
     return (
       <div
         key={session.id}
+        draggable={!isEditing}
+        onDragStart={(e) => handleDragStart(e, session.id)}
+        onDragEnd={handleDragEnd}
         className={cn(
-          'group rounded-lg transition-colors relative',
-          isActive ? 'bg-accent' : 'hover:bg-accent/50'
+          'group rounded-lg transition-all relative',
+          isActive ? 'bg-accent' : 'hover:bg-accent/50',
+          isDragging && 'opacity-50 cursor-grabbing'
         )}
       >
         {isEditing ? (
@@ -178,10 +219,19 @@ export function SessionSidebar({
             className="p-3 cursor-pointer flex items-start gap-2"
             onClick={() => onSelectSession(session.id)}
           >
-            <ChatCircle 
-              className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" 
-              weight={isActive ? 'fill' : 'regular'}
-            />
+            <div className="flex items-center gap-1 shrink-0 mt-0.5">
+              <DotsSixVertical 
+                className={cn(
+                  "h-4 w-4 text-muted-foreground cursor-grab opacity-0 group-hover:opacity-100 transition-opacity",
+                  isDragging && "cursor-grabbing opacity-100"
+                )}
+                weight="bold"
+              />
+              <ChatCircle 
+                className="h-5 w-5 text-muted-foreground" 
+                weight={isActive ? 'fill' : 'regular'}
+              />
+            </div>
             <div className="flex-1 min-w-0">
               <p className={cn(
                 'text-sm font-medium truncate',
@@ -338,10 +388,20 @@ export function SessionSidebar({
               {folders.map(folder => {
                 const folderSessions = sessionsByFolder[folder.id] || []
                 const isExpanded = expandedFolders.has(folder.id)
+                const isDropTarget = dropTargetFolderId === folder.id
                 
                 return (
-                  <div key={folder.id} className="mb-2 group">
-                    <div className="flex items-center gap-2 px-2 py-1.5">
+                  <div 
+                    key={folder.id} 
+                    className="mb-2"
+                    onDragOver={(e) => handleDragOver(e, folder.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, folder.id)}
+                  >
+                    <div className={cn(
+                      "flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors group",
+                      isDropTarget && "bg-accent/50 ring-2 ring-primary"
+                    )}>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -415,8 +475,16 @@ export function SessionSidebar({
               })}
 
               {sessionsByFolder['uncategorized'] && sessionsByFolder['uncategorized'].length > 0 && (
-                <div className="mb-2">
-                  <div className="flex items-center gap-2 px-2 py-1.5">
+                <div 
+                  className="mb-2"
+                  onDragOver={(e) => handleDragOver(e, undefined)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, undefined)}
+                >
+                  <div className={cn(
+                    "flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors",
+                    dropTargetFolderId === 'uncategorized' && "bg-accent/50 ring-2 ring-primary"
+                  )}>
                     <Button
                       variant="ghost"
                       size="icon"
