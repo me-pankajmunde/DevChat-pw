@@ -14,6 +14,7 @@ import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 function App() {
   const [messages = [], setMessages, deleteMessages] = useKV<Message[]>('chat-messages', [])
@@ -193,9 +194,12 @@ function App() {
           </div>
         ) : (
           <ScrollArea className="h-full" ref={scrollAreaRef} onScroll={handleScroll}>
-            <div className="flex flex-col gap-3 p-4">
+            <div className={cn(
+              'flex flex-col p-4',
+              (settings.messageDensity || 'normal') === 'compact' ? 'gap-2' : (settings.messageDensity || 'normal') === 'comfortable' ? 'gap-4' : 'gap-3'
+            )}>
               {displayMessages.map((message) => (
-                <MessageComponent key={message.id} message={message} />
+                <MessageComponent key={message.id} message={message} density={settings.messageDensity || 'normal'} />
               ))}
               {isStreaming && streamingContent && (
                 <MessageComponent
@@ -207,6 +211,7 @@ function App() {
                     model: settings.model,
                   }}
                   isStreaming
+                  density={settings.messageDensity || 'normal'}
                 />
               )}
             </div>

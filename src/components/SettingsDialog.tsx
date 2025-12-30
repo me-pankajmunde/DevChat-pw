@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Gear, CheckCircle, WarningCircle } from '@phosphor-icons/react'
-import { ChatSettings } from '@/lib/types'
+import { ChatSettings, MessageDensity } from '@/lib/types'
 import { testConnection, fetchModels } from '@/lib/api'
 import { themes, applyTheme } from '@/lib/themes'
 
@@ -21,6 +21,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [apiKey, setApiKey] = useState(settings?.apiKey || 'YOUR_TOKEN')
   const [model, setModel] = useState(settings?.model || 'gpt-4o')
   const [theme, setTheme] = useState(settings?.theme || 'cyber-teal')
+  const [messageDensity, setMessageDensity] = useState<MessageDensity>(settings?.messageDensity || 'normal')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [models, setModels] = useState<string[]>([])
@@ -53,7 +54,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey, model, theme })
+    onSave({ apiEndpoint, apiKey, model, theme, messageDensity })
     setOpen(false)
   }
 
@@ -171,6 +172,40 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             </div>
             <p className="text-xs text-muted-foreground">
               Choose a color scheme that suits your preference
+            </p>
+          </div>
+
+          <Separator className="my-2" />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="message-density">Message Density</Label>
+            <Select value={messageDensity} onValueChange={(value) => setMessageDensity(value as MessageDensity)}>
+              <SelectTrigger id="message-density">
+                <SelectValue placeholder="Select density" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="compact">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium">Compact</span>
+                    <span className="text-xs text-muted-foreground">Minimal spacing, smaller text</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium">Normal</span>
+                    <span className="text-xs text-muted-foreground">Balanced spacing and readability</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="comfortable">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium">Comfortable</span>
+                    <span className="text-xs text-muted-foreground">Generous spacing, larger text</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Adjust how much space messages take up on screen
             </p>
           </div>
 
