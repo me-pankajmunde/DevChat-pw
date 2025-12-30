@@ -13,6 +13,7 @@ import { Message, ChatSettings } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
+import { getWallpaperStyle } from '@/lib/wallpapers'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -169,7 +170,7 @@ function App() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative" style={settings?.wallpaper ? getWallpaperStyle(settings.wallpaper) : {}}>
         {!settings ? (
           <div className="flex items-center justify-center h-full p-6">
             <Alert className="max-w-md">

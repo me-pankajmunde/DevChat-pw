@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Gear, CheckCircle, WarningCircle } from '@phosphor-icons/react'
-import { ChatSettings, MessageDensity } from '@/lib/types'
+import { ChatSettings, MessageDensity, Wallpaper } from '@/lib/types'
 import { testConnection, fetchModels } from '@/lib/api'
 import { themes, applyTheme } from '@/lib/themes'
+import { wallpapers, getWallpaperStyle } from '@/lib/wallpapers'
 
 interface SettingsDialogProps {
   settings: ChatSettings | null
@@ -22,6 +23,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [model, setModel] = useState(settings?.model || 'gpt-4o')
   const [theme, setTheme] = useState(settings?.theme || 'cyber-teal')
   const [messageDensity, setMessageDensity] = useState<MessageDensity>(settings?.messageDensity || 'normal')
+  const [wallpaper, setWallpaper] = useState<Wallpaper>(settings?.wallpaper || 'none')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [models, setModels] = useState<string[]>([])
@@ -54,7 +56,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey, model, theme, messageDensity })
+    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper })
     setOpen(false)
   }
 
@@ -206,6 +208,50 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             </Select>
             <p className="text-xs text-muted-foreground">
               Adjust how much space messages take up on screen
+            </p>
+          </div>
+
+          <Separator className="my-2" />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="wallpaper">Chat Wallpaper</Label>
+            <Select value={wallpaper} onValueChange={(value) => setWallpaper(value as Wallpaper)}>
+              <SelectTrigger id="wallpaper">
+                <SelectValue placeholder="Select wallpaper" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(wallpapers).map(([key, data]) => (
+                  <SelectItem key={key} value={key}>
+                    {data.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="grid grid-cols-4 gap-2 mt-2">
+              {Object.entries(wallpapers).map(([key, data]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setWallpaper(key as Wallpaper)}
+                  className={`relative h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
+                    wallpaper === key ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+                  }`}
+                  title={data.name}
+                  style={{
+                    backgroundColor: 'oklch(0.15 0.01 240)',
+                    ...getWallpaperStyle(key as Wallpaper),
+                  }}
+                >
+                  {key === 'none' && (
+                    <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                      None
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Add a subtle background pattern to the chat area
             </p>
           </div>
 

@@ -40,6 +40,13 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Click clear → Confirm dialog → Clear all messages → Show empty state
 - **Success criteria**: All messages removed, confirmation prevents accidental deletion
 
+### Chat Wallpaper
+- **Functionality**: Apply subtle background patterns to the chat area
+- **Purpose**: Personalize the chat interface with WhatsApp-style wallpaper options
+- **Trigger**: Select wallpaper from settings dialog
+- **Progression**: Open settings → Choose wallpaper pattern → Preview → Save → Pattern applied to chat background
+- **Success criteria**: Pattern displays correctly, doesn't interfere with message readability, persists between sessions
+
 ### Code Block Rendering
 - **Functionality**: Detect and render code blocks with syntax highlighting
 - **Purpose**: Make code readable and distinguishable from regular text
@@ -54,6 +61,7 @@ This is a straightforward chat interface with settings management, message histo
 - **Long Responses**: Auto-scroll during streaming, allow manual scroll to stop auto-scrolling
 - **Malformed API Responses**: Gracefully handle errors and display user-friendly error messages
 - **Code Block Edge Cases**: Handle inline code, missing language specifiers, and unclosed code blocks
+- **Wallpaper Readability**: All wallpaper patterns use subtle opacity to ensure text remains readable
 
 ## Design Direction
 The design should feel like a developer's command center - technical, precise, and efficient. A dark-themed, terminal-inspired aesthetic with vibrant accent colors that suggest intelligence and energy. The interface should fade into the background, letting the conversation take center stage.
@@ -93,11 +101,14 @@ Animations should feel technical and precise - like systems activating and data 
   - Alert for error states and validation feedback
   - Badge for message metadata (timestamp, token count if available)
   - Separator for visual breaks between message groups
+  - Select for theme, model, message density, and wallpaper choices
   
 - **Customizations**: 
   - Custom markdown renderer for code blocks with copy button
   - Streaming text component that animates token arrival
   - Custom empty state illustration for first-time experience
+  - Wallpaper system with 8 pattern options (none, dots, grid, waves, geometric, bubbles, diagonal, hexagon)
+  - Visual wallpaper previews in settings with interactive selection
   
 - **States**: 
   - Buttons: Rest (subtle border), Hover (accent glow), Active (pressed inset), Disabled (muted with reduced opacity)
