@@ -13,10 +13,10 @@ This is a straightforward chat interface with settings management, message histo
 ## Essential Features
 
 ### API Configuration
-- **Functionality**: Store and validate OpenAI API endpoint and key
-- **Purpose**: Allow developers to connect to their local or custom OpenAI-compatible API
+- **Functionality**: Store and validate OpenAI API endpoint, key, and model name
+- **Purpose**: Allow developers to connect to their local or custom OpenAI-compatible API with any supported model
 - **Trigger**: First launch or clicking settings button
-- **Progression**: Click settings → Enter API endpoint URL → Enter API key → Save → Validation feedback
+- **Progression**: Click settings → Enter API endpoint URL → Enter API key → Enter model name → Save → Validation feedback
 - **Success criteria**: Successfully store credentials and make test connection
 
 ### Chat Interface

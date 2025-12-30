@@ -71,6 +71,7 @@ function App() {
       settings.apiEndpoint,
       settings.apiKey,
       conversationMessages,
+      settings.model,
       (token) => {
         fullContent += token
         setStreamingContent(fullContent)

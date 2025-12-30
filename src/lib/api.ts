@@ -4,6 +4,7 @@ export async function streamChatCompletion(
   endpoint: string,
   apiKey: string,
   messages: OpenAIMessage[],
+  model: string,
   onToken: (token: string) => void,
   onError: (error: string) => void
 ) {
@@ -15,7 +16,7 @@ export async function streamChatCompletion(
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model,
         messages,
         stream: true,
       }),

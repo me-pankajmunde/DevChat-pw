@@ -14,8 +14,9 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [open, setOpen] = useState(false)
-  const [apiEndpoint, setApiEndpoint] = useState(settings?.apiEndpoint || 'http://localhost:1234/v1')
-  const [apiKey, setApiKey] = useState(settings?.apiKey || 'sk-local')
+  const [apiEndpoint, setApiEndpoint] = useState(settings?.apiEndpoint || 'http://127.0.0.1:5001/v1')
+  const [apiKey, setApiKey] = useState(settings?.apiKey || 'YOUR_TOKEN')
+  const [model, setModel] = useState(settings?.model || 'gpt-4o')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
 
@@ -29,7 +30,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey })
+    onSave({ apiEndpoint, apiKey, model })
     setOpen(false)
   }
 
@@ -52,7 +53,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             <Label htmlFor="api-endpoint">API Endpoint</Label>
             <Input
               id="api-endpoint"
-              placeholder="http://localhost:1234/v1"
+              placeholder="http://127.0.0.1:5001/v1"
               value={apiEndpoint}
               onChange={(e) => setApiEndpoint(e.target.value)}
             />
@@ -62,9 +63,18 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             <Input
               id="api-key"
               type="password"
-              placeholder="sk-local"
+              placeholder="YOUR_TOKEN"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="model">Model</Label>
+            <Input
+              id="model"
+              placeholder="gpt-4o"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
             />
           </div>
           <div className="flex gap-2">
@@ -87,7 +97,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
               </div>
             )}
           </div>
-          <Button onClick={handleSave} disabled={!apiEndpoint || !apiKey}>
+          <Button onClick={handleSave} disabled={!apiEndpoint || !apiKey || !model}>
             Save Settings
           </Button>
         </div>

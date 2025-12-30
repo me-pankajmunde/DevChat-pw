@@ -8,6 +8,7 @@ export interface Message {
 export interface ChatSettings {
   apiEndpoint: string
   apiKey: string
+  model: string
 }
 
 export interface OpenAIMessage {
