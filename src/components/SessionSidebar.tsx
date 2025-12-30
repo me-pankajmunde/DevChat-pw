@@ -326,19 +326,17 @@ export function SessionSidebar({
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
-          {Object.keys(sessionsByFolder).length === 0 ? (
+          {sessions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <ChatCircle className="h-12 w-12 text-muted-foreground/50 mb-3" />
               <p className="text-sm text-muted-foreground">
-                {searchQuery || selectedTags.length > 0 ? 'No matching chats' : 'No chat sessions yet'}
+                No chat sessions yet
               </p>
             </div>
           ) : (
             <>
               {folders.map(folder => {
-                const folderSessions = sessionsByFolder[folder.id]
-                if (!folderSessions || folderSessions.length === 0) return null
-                
+                const folderSessions = sessionsByFolder[folder.id] || []
                 const isExpanded = expandedFolders.has(folder.id)
                 
                 return (
@@ -403,7 +401,13 @@ export function SessionSidebar({
                     </div>
                     {isExpanded && (
                       <div className="ml-8 space-y-1">
-                        {folderSessions.map(session => renderSessionItem(session))}
+                        {folderSessions.length > 0 ? (
+                          folderSessions.map(session => renderSessionItem(session))
+                        ) : (
+                          <div className="py-4 text-center text-xs text-muted-foreground">
+                            No chats in this folder
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -438,6 +442,15 @@ export function SessionSidebar({
                       {sessionsByFolder['uncategorized'].map(session => renderSessionItem(session))}
                     </div>
                   )}
+                </div>
+              )}
+              
+              {Object.keys(sessionsByFolder).length === 0 && folders.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <ChatCircle className="h-12 w-12 text-muted-foreground/50 mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    {searchQuery || selectedTags.length > 0 ? 'No matching chats' : 'No chat sessions yet'}
+                  </p>
                 </div>
               )}
             </>
