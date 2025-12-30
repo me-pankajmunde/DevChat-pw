@@ -21,6 +21,15 @@ export interface ChatSession {
   createdAt: number
   updatedAt: number
   model?: string
+  folderId?: string
+  tags?: string[]
+}
+
+export interface SessionFolder {
+  id: string
+  name: string
+  color?: string
+  createdAt: number
 }
 
 export type MessageDensity = 'compact' | 'normal' | 'comfortable'

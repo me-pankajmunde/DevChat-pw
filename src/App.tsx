@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon } from '@phosphor-icons/react'
-import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession } from '@/lib/types'
+import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 function App() {
   const [sessions = [], setSessions] = useKV<ChatSession[]>('chat-sessions', [])
   const [currentSessionId = null, setCurrentSessionId] = useKV<string | null>('current-session-id', null)
+  const [folders = [], setFolders] = useKV<SessionFolder[]>('session-folders', [])
   const [settings = null, setSettings] = useKV<ChatSettings | null>('chat-settings', null)
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
@@ -95,6 +96,54 @@ function App() {
     setCurrentSessionId(sessionId)
     setAttachedImages([])
     setInput('')
+  }
+
+  const createFolder = (name: string, color: string) => {
+    const newFolder: SessionFolder = {
+      id: `folder-${Date.now()}`,
+      name,
+      color,
+      createdAt: Date.now()
+    }
+    setFolders(current => [...(current || []), newFolder])
+    toast.success(`Folder "${name}" created`)
+  }
+
+  const deleteFolder = (folderId: string) => {
+    setFolders(current => (current || []).filter(f => f.id !== folderId))
+    setSessions(current =>
+      (current || []).map(session =>
+        session.folderId === folderId
+          ? { ...session, folderId: undefined }
+          : session
+      )
+    )
+    toast.success('Folder deleted')
+  }
+
+  const moveToFolder = (sessionId: string, folderId: string | undefined) => {
+    setSessions(current =>
+      (current || []).map(session =>
+        session.id === sessionId
+          ? { ...session, folderId, updatedAt: Date.now() }
+          : session
+      )
+    )
+    const folderName = folderId 
+      ? folders.find(f => f.id === folderId)?.name 
+      : 'Uncategorized'
+    toast.success(`Moved to ${folderName}`)
+  }
+
+  const updateTags = (sessionId: string, tags: string[]) => {
+    setSessions(current =>
+      (current || []).map(session =>
+        session.id === sessionId
+          ? { ...session, tags, updatedAt: Date.now() }
+          : session
+      )
+    )
+    toast.success('Tags updated')
   }
 
   useEffect(() => {
@@ -353,6 +402,7 @@ function App() {
             <SessionSidebar
               sessions={sessions}
               currentSessionId={currentSessionId}
+              folders={folders}
               onSelectSession={(sessionId) => {
                 selectSession(sessionId)
                 if (window.innerWidth < 768) {
@@ -367,6 +417,10 @@ function App() {
               }}
               onDeleteSession={deleteSession}
               onRenameSession={renameSession}
+              onCreateFolder={createFolder}
+              onDeleteFolder={deleteFolder}
+              onMoveToFolder={moveToFolder}
+              onUpdateTags={updateTags}
             />
           </div>
         </>
