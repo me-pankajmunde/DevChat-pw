@@ -4,13 +4,15 @@ import { Message as MessageComponent } from '@/components/Message'
 import { ImageAttachment } from '@/components/ImageAttachment'
 import { SettingsDialog } from '@/components/SettingsDialog'
 import { ModelSelector } from '@/components/ModelSelector'
+import { SessionSidebar } from '@/components/SessionSidebar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, X } from '@phosphor-icons/react'
-import { Message, ChatSettings, ImageAttachment as ImageAttachmentType } from '@/lib/types'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon } from '@phosphor-icons/react'
+import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
@@ -20,16 +22,108 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 function App() {
-  const [messages = [], setMessages, deleteMessages] = useKV<Message[]>('chat-messages', [])
+  const [sessions = [], setSessions] = useKV<ChatSession[]>('chat-sessions', [])
+  const [currentSessionId = null, setCurrentSessionId] = useKV<string | null>('current-session-id', null)
   const [settings = null, setSettings] = useKV<ChatSettings | null>('chat-settings', null)
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [attachedImages, setAttachedImages] = useState<ImageAttachmentType[]>([])
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [autoScroll, setAutoScroll] = useState(true)
+
+  const currentSession = sessions.find(s => s.id === currentSessionId)
+  const messages = currentSession?.messages || []
+
+  const generateSessionTitle = (firstMessage: string): string => {
+    const cleaned = firstMessage.trim().replace(/\s+/g, ' ')
+    return cleaned.length > 50 ? cleaned.substring(0, 50) + '...' : cleaned
+  }
+
+  const createNewSession = () => {
+    const newSession: ChatSession = {
+      id: `session-${Date.now()}`,
+      title: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }
+    setSessions(current => [...(current || []), newSession])
+    setCurrentSessionId(newSession.id)
+    toast.success('New chat created')
+  }
+
+  const updateCurrentSession = (updater: (session: ChatSession) => ChatSession) => {
+    if (!currentSessionId) return
+    
+    setSessions(current => 
+      (current || []).map(session => 
+        session.id === currentSessionId ? updater(session) : session
+      )
+    )
+  }
+
+  const deleteSession = (sessionId: string) => {
+    if (sessions.length === 1) {
+      toast.error('Cannot delete the last session')
+      return
+    }
+    
+    setSessions(current => (current || []).filter(s => s.id !== sessionId))
+    if (currentSessionId === sessionId) {
+      const remaining = sessions.filter(s => s.id !== sessionId)
+      setCurrentSessionId(remaining.length > 0 ? remaining[0].id : null)
+    }
+    toast.success('Chat deleted')
+  }
+
+  const renameSession = (sessionId: string, newTitle: string) => {
+    setSessions(current =>
+      (current || []).map(session =>
+        session.id === sessionId
+          ? { ...session, title: newTitle, updatedAt: Date.now() }
+          : session
+      )
+    )
+    toast.success('Chat renamed')
+  }
+
+  const selectSession = (sessionId: string) => {
+    setCurrentSessionId(sessionId)
+    setAttachedImages([])
+    setInput('')
+  }
+
+  useEffect(() => {
+    if (sessions.length === 0 && !currentSessionId) {
+      const newSession: ChatSession = {
+        id: `session-${Date.now()}`,
+        title: 'New Chat',
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+      setSessions([newSession])
+      setCurrentSessionId(newSession.id)
+    } else if (currentSessionId && !sessions.find(s => s.id === currentSessionId) && sessions.length > 0) {
+      setCurrentSessionId(sessions[0].id)
+    }
+  }, [sessions.length, currentSessionId])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault()
+        setSidebarOpen(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   useEffect(() => {
     registerServiceWorker()
@@ -106,7 +200,7 @@ function App() {
   }
 
   const handleSend = async () => {
-    if ((!input.trim() && attachedImages.length === 0) || !settings || isStreaming) return
+    if ((!input.trim() && attachedImages.length === 0) || !settings || isStreaming || !currentSessionId) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -116,7 +210,16 @@ function App() {
       images: attachedImages.length > 0 ? attachedImages : undefined,
     }
 
-    setMessages((current) => [...(current || []), userMessage])
+    const shouldUpdateTitle = messages.length === 0
+    const titleToSet = shouldUpdateTitle ? generateSessionTitle(userMessage.content) : undefined
+
+    updateCurrentSession(session => ({
+      ...session,
+      messages: [...session.messages, userMessage],
+      updatedAt: Date.now(),
+      ...(titleToSet && { title: titleToSet })
+    }))
+
     setInput('')
     const currentImages = [...attachedImages]
     setAttachedImages([])
@@ -124,7 +227,7 @@ function App() {
     setStreamingContent('')
     setAutoScroll(true)
 
-    const conversationMessages = (messages || []).concat(userMessage).map((m) => {
+    const conversationMessages = messages.concat(userMessage).map((m) => {
       if (m.images && m.images.length > 0) {
         const contentParts: Array<{type: 'text' | 'image_url', text?: string, image_url?: {url: string, detail?: 'auto'}}> = []
         
@@ -185,7 +288,11 @@ function App() {
         timestamp: Date.now(),
         model: settings.model,
       }
-      setMessages((current) => [...(current || []), assistantMessage])
+      updateCurrentSession(session => ({
+        ...session,
+        messages: [...session.messages, assistantMessage],
+        updatedAt: Date.now()
+      }))
     }
 
     setIsStreaming(false)
@@ -194,9 +301,14 @@ function App() {
   }
 
   const handleClear = () => {
-    if (confirm('Are you sure you want to clear all messages?')) {
-      deleteMessages()
-      toast.success('Conversation cleared')
+    if (!currentSessionId) return
+    if (confirm('Are you sure you want to clear all messages in this chat?')) {
+      updateCurrentSession(session => ({
+        ...session,
+        messages: [],
+        updatedAt: Date.now()
+      }))
+      toast.success('Chat cleared')
     }
   }
 
@@ -225,34 +337,88 @@ function App() {
   const displayMessages = messages
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex h-screen bg-background text-foreground">
       <Toaster />
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Local AI Chat</h1>
-          <p className="text-sm text-muted-foreground">Developer-focused OpenAI API client</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {settings && (
-            <ModelSelector 
-              settings={settings} 
-              onModelChange={handleModelChange}
-              disabled={isStreaming}
+      
+      {sidebarOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className={cn(
+            "w-80 shrink-0 border-r border-border z-50",
+            "md:relative fixed inset-y-0 left-0 bg-background"
+          )}>
+            <SessionSidebar
+              sessions={sessions}
+              currentSessionId={currentSessionId}
+              onSelectSession={(sessionId) => {
+                selectSession(sessionId)
+                if (window.innerWidth < 768) {
+                  setSidebarOpen(false)
+                }
+              }}
+              onCreateSession={() => {
+                createNewSession()
+                if (window.innerWidth < 768) {
+                  setSidebarOpen(false)
+                }
+              }}
+              onDeleteSession={deleteSession}
+              onRenameSession={renameSession}
             />
-          )}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleClear}
-            disabled={messages.length === 0}
-          >
-            <Trash className="h-5 w-5" />
-          </Button>
-          <SettingsDialog settings={settings} onSave={handleSettingsSave} />
-        </div>
-      </header>
+          </div>
+        </>
+      )}
 
-      <div className="flex-1 overflow-hidden relative" style={settings?.wallpaper && settings.wallpaper !== 'none' ? getWallpaperStyle(settings.wallpaper, settings.customWallpaperUrl, settings.wallpaperOpacity, settings.wallpaperBlur) : {}}>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm px-4 md:px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <SidebarIcon className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Toggle sidebar (⌘B)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
+                {currentSession?.title || 'Local AI Chat'}
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Developer-focused OpenAI API client</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {settings && (
+              <ModelSelector 
+                settings={settings} 
+                onModelChange={handleModelChange}
+                disabled={isStreaming}
+              />
+            )}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleClear}
+              disabled={messages.length === 0}
+            >
+              <Trash className="h-5 w-5" />
+            </Button>
+            <SettingsDialog settings={settings} onSave={handleSettingsSave} />
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-hidden relative" style={settings?.wallpaper && settings.wallpaper !== 'none' ? getWallpaperStyle(settings.wallpaper, settings.customWallpaperUrl, settings.wallpaperOpacity, settings.wallpaperBlur) : {}}>
         {!settings ? (
           <div className="flex items-center justify-center h-full p-6">
             <Alert className="max-w-md">
@@ -300,62 +466,63 @@ function App() {
             </div>
           </ScrollArea>
         )}
-      </div>
+        </div>
 
-      <div className="border-t border-border bg-card/50 backdrop-blur-sm p-4">
-        <div className="max-w-4xl mx-auto">
-          {attachedImages.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg border border-border">
-              {attachedImages.map((image) => (
-                <div key={image.id} className="relative">
-                  <ImageAttachment 
-                    image={image} 
-                    onRemove={() => handleRemoveImage(image.id)}
-                    showRemove
-                  />
-                  <div className="text-xs text-muted-foreground mt-1 px-1 truncate max-w-[120px]">
-                    {formatFileSize(image.size)}
+        <div className="border-t border-border bg-card/50 backdrop-blur-sm p-3 md:p-4">
+          <div className="max-w-4xl mx-auto">
+            {attachedImages.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg border border-border">
+                {attachedImages.map((image) => (
+                  <div key={image.id} className="relative">
+                    <ImageAttachment 
+                      image={image} 
+                      onRemove={() => handleRemoveImage(image.id)}
+                      showRemove
+                    />
+                    <div className="text-xs text-muted-foreground mt-1 px-1 truncate max-w-[120px]">
+                      {formatFileSize(image.size)}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-[50px] w-[50px] md:h-[60px] md:w-[60px] shrink-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!settings || isStreaming}
+              >
+                <ImageIcon className="h-5 w-5" />
+              </Button>
+              <Textarea
+                ref={textareaRef}
+                id="message-input"
+                placeholder={settings ? "Type your message... (Shift+Enter for new line)" : "Configure API settings first"}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={!settings || isStreaming}
+                className="min-h-[50px] md:min-h-[60px] max-h-[200px] resize-none"
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!settings || (!input.trim() && attachedImages.length === 0) || isStreaming}
+                size="icon"
+                className="h-[50px] w-[50px] md:h-[60px] md:w-[60px] shrink-0"
+              >
+                <PaperPlaneRight className="h-5 w-5" weight="fill" />
+              </Button>
             </div>
-          )}
-          <div className="flex gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleImageSelect}
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-[60px] w-[60px] shrink-0"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={!settings || isStreaming}
-            >
-              <ImageIcon className="h-5 w-5" />
-            </Button>
-            <Textarea
-              ref={textareaRef}
-              id="message-input"
-              placeholder={settings ? "Type your message... (Shift+Enter for new line)" : "Configure API settings first"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={!settings || isStreaming}
-              className="min-h-[60px] max-h-[200px] resize-none"
-            />
-            <Button
-              onClick={handleSend}
-              disabled={!settings || (!input.trim() && attachedImages.length === 0) || isStreaming}
-              size="icon"
-              className="h-[60px] w-[60px] shrink-0"
-            >
-              <PaperPlaneRight className="h-5 w-5" weight="fill" />
-            </Button>
           </div>
         </div>
       </div>

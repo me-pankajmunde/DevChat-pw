@@ -26,19 +26,26 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Type message → Send → Show loading state → Stream response tokens → Display complete message
 - **Success criteria**: Messages persist across sessions, responses stream smoothly, code blocks are properly formatted
 
+### Session Management
+- **Functionality**: Create, switch, rename, and delete chat sessions with independent conversation histories
+- **Purpose**: Organize multiple conversations and maintain separate contexts for different tasks or topics
+- **Trigger**: Click new chat button in sidebar, or select existing session from history
+- **Progression**: Click new chat → Session created with "New Chat" title → First message auto-generates descriptive title → Switch between sessions via sidebar → Rename via edit icon → Delete via trash icon with confirmation
+- **Success criteria**: Each session maintains independent message history, sessions persist between page loads, titles update automatically from first message, search filters sessions by title
+
 ### Message History
-- **Functionality**: Display conversation history with user and AI messages
+- **Functionality**: Display conversation history with user and AI messages within the current session
 - **Purpose**: Maintain context and allow reviewing previous exchanges
-- **Trigger**: Automatic on page load
-- **Progression**: Load app → Fetch stored messages → Display in chronological order → Scroll to latest
+- **Trigger**: Automatic on page load or session switch
+- **Progression**: Load app → Fetch stored messages for current session → Display in chronological order → Scroll to latest
 - **Success criteria**: Messages persist between sessions, auto-scroll works smoothly, old messages remain accessible
 
 ### Clear Conversation
-- **Functionality**: Delete all messages and start fresh
-- **Purpose**: Begin new conversation without previous context
-- **Trigger**: Click clear button
-- **Progression**: Click clear → Confirm dialog → Clear all messages → Show empty state
-- **Success criteria**: All messages removed, confirmation prevents accidental deletion
+- **Functionality**: Delete all messages in the current session and start fresh
+- **Purpose**: Begin new conversation without previous context while keeping session
+- **Trigger**: Click clear button in header
+- **Progression**: Click clear → Confirm dialog → Clear all messages in current session → Show empty state
+- **Success criteria**: All messages in session removed, confirmation prevents accidental deletion, other sessions unaffected
 
 ### Chat Wallpaper
 - **Functionality**: Apply subtle background patterns to the chat area
@@ -71,6 +78,9 @@ This is a straightforward chat interface with settings management, message histo
 - **Wallpaper Readability**: All wallpaper patterns use subtle opacity to ensure text remains readable
 - **Image Upload Validation**: Enforce 20MB file size limit, validate image formats (JPEG, PNG, GIF, WebP), show clear error messages for invalid files
 - **Multiple Images**: Support multiple image attachments per message, show file sizes, allow removal before sending
+- **Session Edge Cases**: Handle deleting the current session by auto-selecting another, prevent deleting last session without creating a new one, clear input and attachments when switching sessions
+- **Empty Sessions**: Show appropriate empty state for new sessions, auto-generate title from first message content
+- **Session Search**: Filter sessions in real-time as user types, show "no results" state when search has no matches
 
 ## Design Direction
 The design should feel like a developer's command center - technical, precise, and efficient. A dark-themed, terminal-inspired aesthetic with vibrant accent colors that suggest intelligence and energy. The interface should fade into the background, letting the conversation take center stage.
@@ -104,13 +114,14 @@ Animations should feel technical and precise - like systems activating and data 
 - **Components**: 
   - Card for message bubbles with distinct styling for user vs AI
   - Dialog for settings configuration (API endpoint and key input)
-  - Button for send, clear, and settings actions with hover states
-  - Input and Textarea for message composition
-  - ScrollArea for message history with auto-scroll behavior
+  - Button for send, clear, settings, and session management actions with hover states
+  - Input and Textarea for message composition and session renaming
+  - ScrollArea for message history and session list with auto-scroll behavior
   - Alert for error states and validation feedback
   - Badge for message metadata (timestamp, token count if available)
   - Separator for visual breaks between message groups
   - Select for theme, model, message density, and wallpaper choices
+  - Sidebar component for session history and management
   
 - **Customizations**: 
   - Custom markdown renderer with react-syntax-highlighter using VS Code Dark Plus theme
@@ -121,22 +132,31 @@ Animations should feel technical and precise - like systems activating and data 
   - Custom empty state illustration for first-time experience
   - Wallpaper system with 8 pattern options (none, dots, grid, waves, geometric, bubbles, diagonal, hexagon)
   - Visual wallpaper previews in settings with interactive selection
+  - Session sidebar with collapsible/expandable functionality
+  - Inline session title editing with save/cancel actions
+  - Session search with real-time filtering
   
 - **States**: 
   - Buttons: Rest (subtle border), Hover (accent glow), Active (pressed inset), Disabled (muted with reduced opacity)
   - Inputs: Unfocused (subtle border), Focused (accent border glow), Error (destructive border), Success (primary border)
   - Messages: Sending (reduced opacity + pulse), Streaming (gradient shimmer on latest token), Complete (full opacity)
+  - Sessions: Active (accent background), Hover (subtle highlight), Editing (inline input visible)
   
 - **Icon Selection**: 
   - PaperPlaneRight for send
   - Gear for settings
-  - Trash for clear conversation
+  - Trash for clear conversation and delete sessions
   - Code for code block toggle
   - Copy for copy to clipboard
   - Check for confirmation states
   - Warning for error states
   - Image for image attachment
-  - X for removing attached images
+  - X for removing attached images and canceling edits
+  - Plus for creating new chat sessions
+  - PencilSimple for editing session titles
+  - ChatCircle for session indicators
+  - MagnifyingGlass for session search
+  - Sidebar for toggling sidebar visibility
   
 - **Spacing**: 
   - Container padding: p-6 (24px)
@@ -144,6 +164,8 @@ Animations should feel technical and precise - like systems activating and data 
   - Input groups: gap-2 (8px)
   - Button padding: px-4 py-2 (16px/8px)
   - Card padding: p-4 (16px)
+  - Sidebar width: 320px (w-80)
+  - Session list gaps: gap-1 (4px)
   
 - **Mobile**: 
   - Stack settings inline with chat on desktop, use sheet drawer on mobile
@@ -151,3 +173,5 @@ Animations should feel technical and precise - like systems activating and data 
   - Make input area sticky at bottom with safe area padding
   - Collapse header to icon-only buttons on mobile
   - Single column layout throughout
+  - Sidebar slides over content on mobile, can be toggled via hamburger icon
+  - Session search remains accessible in mobile sidebar

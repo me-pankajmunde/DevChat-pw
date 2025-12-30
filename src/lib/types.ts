@@ -14,6 +14,15 @@ export interface Message {
   images?: ImageAttachment[]
 }
 
+export interface ChatSession {
+  id: string
+  title: string
+  messages: Message[]
+  createdAt: number
+  updatedAt: number
+  model?: string
+}
+
 export type MessageDensity = 'compact' | 'normal' | 'comfortable'
 export type Wallpaper = 'none' | 'dots' | 'grid' | 'waves' | 'geometric' | 'bubbles' | 'diagonal' | 'hexagon' | 'custom'
 
