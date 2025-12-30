@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Message as MessageComponent } from '@/components/Message'
 import { SettingsDialog } from '@/components/SettingsDialog'
+import { ModelSelector } from '@/components/ModelSelector'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -107,6 +108,14 @@ function App() {
     }
   }
 
+  const handleModelChange = (model: string) => {
+    setSettings((current) => {
+      if (!current) return null
+      return { ...current, model }
+    })
+    toast.success(`Model changed to ${model}`)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -124,7 +133,14 @@ function App() {
           <h1 className="text-2xl font-bold tracking-tight">Local AI Chat</h1>
           <p className="text-sm text-muted-foreground">Developer-focused OpenAI API client</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {settings && (
+            <ModelSelector 
+              settings={settings} 
+              onModelChange={handleModelChange}
+              disabled={isStreaming}
+            />
+          )}
           <Button
             variant="outline"
             size="icon"
