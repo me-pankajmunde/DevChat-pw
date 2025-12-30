@@ -18,7 +18,8 @@ import {
   CaretDown,
   Tag as TagIcon,
   DotsThree,
-  DotsSixVertical
+  DotsSixVertical,
+  Download
 } from '@phosphor-icons/react'
 import {
   DropdownMenu,
@@ -31,6 +32,8 @@ import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { FolderDialog } from './FolderDialog'
 import { TagDialog } from './TagDialog'
+import { exportSingleSession } from '@/lib/export-import'
+import { toast } from 'sonner'
 
 interface SessionSidebarProps {
   sessions: ChatSession[]
@@ -289,6 +292,15 @@ export function SessionSidebar({
                       </DropdownMenuItem>
                     }
                   />
+                  <DropdownMenuItem onClick={() => {
+                    exportSingleSession(session)
+                    toast.success('Chat exported', {
+                      description: `${session.title} exported successfully`
+                    })
+                  }}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Chat
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {folders.length > 0 && (
                     <>

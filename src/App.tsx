@@ -5,13 +5,14 @@ import { ImageAttachment } from '@/components/ImageAttachment'
 import { SettingsDialog } from '@/components/SettingsDialog'
 import { ModelSelector } from '@/components/ModelSelector'
 import { SessionSidebar } from '@/components/SessionSidebar'
+import { ExportImportDialog } from '@/components/ExportImportDialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -155,6 +156,11 @@ function App() {
       )
     )
     toast.success('Tags updated')
+  }
+
+  const handleImport = (importedSessions: ChatSession[], importedFolders: SessionFolder[]) => {
+    setSessions(current => [...(current || []), ...importedSessions])
+    setFolders(current => [...(current || []), ...importedFolders])
   }
 
   useEffect(() => {
@@ -472,6 +478,27 @@ function App() {
                 disabled={isStreaming}
               />
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ExportImportDialog 
+                      sessions={sessions}
+                      folders={folders}
+                      onImport={handleImport}
+                      trigger={
+                        <Button variant="outline" size="icon">
+                          <FileArrowDown className="h-5 w-5" />
+                        </Button>
+                      }
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Export/Import chats</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button
               variant="outline"
               size="icon"
