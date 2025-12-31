@@ -281,8 +281,110 @@ See `/src/lib/persistence.ts` for complete API documentation:
 
 Planned improvements:
 
-1. Cloud sync integration
+1. ✅ **Cloud sync integration** - GitHub cloud sync implemented with automatic backups
 2. Selective backup/restore
 3. Compression for large datasets
 4. Automated cleanup scheduling
 5. Data analytics and insights
+
+## GitHub Cloud Sync
+
+### Overview
+
+DevChat Local now includes GitHub cloud sync for backing up your chat data to a private GitHub repository. This provides:
+
+- **Automatic backups** at regular intervals
+- **Manual sync** on demand
+- **Conflict resolution** when syncing across devices
+- **Private repository** storage (only you can access)
+
+### Setup
+
+1. Click the GitHub icon in the header
+2. Ensure you're signed in to GitHub
+3. The app will create a private repository called "devchat-backup"
+4. Click "Sync to GitHub" to perform your first backup
+
+### Features
+
+#### Manual Sync
+
+- **Backup to GitHub** - Upload current data to your private repository
+- **Restore from GitHub** - Download and restore data from backup
+- **Conflict Resolution** - Choose how to handle conflicts:
+  - **Merge** - Combine local and remote data (recommended)
+  - **Remote** - Replace local data with GitHub backup
+  - **Local** - Keep current data, ignore remote
+
+#### Auto-Sync
+
+Enable automatic syncing in the Settings tab:
+
+- Set sync interval (15 minutes to 6 hours)
+- Automatic conflict detection
+- Silent background sync
+- Toast notifications on completion
+
+#### Sync Status
+
+View sync information:
+
+- Last sync timestamp
+- Sync success/failure status
+- GitHub account connection
+- Conflict warnings
+
+### API
+
+```typescript
+import { 
+  uploadToGitHub,
+  downloadFromGitHub,
+  enableAutoSync,
+  getSyncStatus 
+} from '@/lib/github-sync'
+
+// Manual upload
+await uploadToGitHub(sessions, folders, settings)
+
+// Manual download
+const remoteData = await downloadFromGitHub()
+
+// Enable auto-sync (30 minute interval)
+await enableAutoSync(30)
+
+// Check sync status
+const status = await getSyncStatus()
+```
+
+### Hook
+
+Use the auto-sync hook in your components:
+
+```typescript
+import { useGitHubAutoSync } from '@/hooks/use-github-sync'
+
+useGitHubAutoSync(sessions, folders, settings, true)
+```
+
+### Security
+
+- Backups stored in private GitHub repository
+- Only accessible by repository owner
+- GitHub authentication required
+- API keys included in backups (secure repository access)
+- Repository name: `devchat-backup`
+
+### Troubleshooting
+
+#### Sync fails with authentication error
+- Verify you're signed in to GitHub
+- Check GitHub access permissions
+
+#### Conflict detected warning
+- Choose appropriate resolution strategy
+- Merge strategy recommended for most cases
+
+#### Repository not created
+- Check GitHub repository creation permissions
+- Verify private repository quota

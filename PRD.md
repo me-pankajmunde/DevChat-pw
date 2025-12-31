@@ -75,6 +75,13 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Click compare → Select models via checkboxes → Enter query → Send → Watch all models stream responses in parallel → View side-by-side results in grid layout → Return to chat view
 - **Success criteria**: Multiple models stream simultaneously, responses display in organized grid (1-3 columns based on selection), each response shows model name with icon, streaming indicators and completion badges work correctly, errors display per-model without blocking others
 
+### GitHub Cloud Sync
+- **Functionality**: Backup and restore chat data to/from a private GitHub repository with automatic sync capabilities
+- **Purpose**: Provide cloud backup, enable cross-device sync, protect against data loss, and maintain backup history
+- **Trigger**: Click GitHub icon in header, or automatic sync at configured intervals
+- **Progression**: Manual: Click GitHub icon → Authenticate with GitHub → Click "Sync to GitHub" → Repository created automatically → Data uploaded → Success confirmation. Auto: Enable auto-sync → Set interval → Automatic backups run in background → Toast notifications on completion
+- **Success criteria**: Private repository created successfully, data synced without errors, conflict resolution works correctly, auto-sync runs on schedule, restore functionality recovers data accurately, sync status displays correctly
+
 ## Edge Case Handling
 - **Missing API Configuration**: Show prominent setup prompt with clear instructions instead of allowing message attempts
 - **API Connection Failure**: Display clear error message with troubleshooting hints (check endpoint, verify key, ensure API is running)
@@ -93,6 +100,11 @@ This is a straightforward chat interface with settings management, message histo
 - **Compare View Errors**: Handle model-specific errors gracefully without blocking other models, show error alerts within model cards, allow continuing with successful models even if some fail
 - **Compare Model Selection**: Require at least one model to be selected, disable compare button when no input provided, preserve last model selection for convenience
 - **Compare Layout**: Adapt grid layout based on number of models (1 column for single model, 2 columns for 2 models, 3 columns for 3+ models on desktop), stack vertically on mobile
+- **GitHub Authentication**: Handle unauthenticated state gracefully with clear instructions, verify GitHub token validity before sync operations
+- **Sync Conflicts**: Detect when remote data differs from local data, provide three resolution strategies (merge, use remote, use local), warn users before overwriting data
+- **Repository Creation**: Automatically create private backup repository if it doesn't exist, handle repository creation failures with helpful error messages
+- **Network Failures**: Handle offline state gracefully, retry sync operations with exponential backoff, show clear error messages for network issues
+- **Large Datasets**: Handle large chat histories efficiently, provide progress indicators for long uploads/downloads, implement chunking if needed
 
 ## Design Direction
 The design should feel like a developer's command center - technical, precise, and efficient. A dark-themed, terminal-inspired aesthetic with vibrant accent colors that suggest intelligence and energy. The interface should fade into the background, letting the conversation take center stage.
@@ -182,6 +194,10 @@ Animations should feel technical and precise - like systems activating and data 
   - DotsThree for dropdown menus
   - ArrowsLeftRight for model comparison toggle
   - FileArrowDown for export/import functionality
+  - GithubLogo for GitHub cloud sync
+  - CloudArrowUp for uploading to cloud
+  - CloudArrowDown for downloading from cloud
+  - ArrowsClockwise for sync in progress
   
 - **Spacing**: 
   - Container padding: p-6 (24px)

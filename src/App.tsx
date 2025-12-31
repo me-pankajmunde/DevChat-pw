@@ -8,13 +8,14 @@ import { SessionSidebar } from '@/components/SessionSidebar'
 import { ExportImportDialog } from '@/components/ExportImportDialog'
 import { CompareView } from '@/components/CompareView'
 import { DataManagementDialog } from '@/components/DataManagementDialog'
+import { GitHubSyncDialog } from '@/components/GitHubSyncDialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, GithubLogo } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -22,6 +23,7 @@ import { applyTheme } from '@/lib/themes'
 import { getWallpaperStyle } from '@/lib/wallpapers'
 import { fileToBase64, formatFileSize } from '@/lib/utils'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
+import { useGitHubAutoSync } from '@/hooks/use-github-sync'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -46,6 +48,7 @@ function App() {
   const messages = currentSession?.messages || []
 
   useAutoBackup(sessions, folders, settings, true)
+  useGitHubAutoSync(sessions, folders, settings, true)
 
   const generateSessionTitle = (firstMessage: string): string => {
     const cleaned = firstMessage.trim().replace(/\s+/g, ' ')
@@ -552,6 +555,28 @@ function App() {
                 disabled={isStreaming}
               />
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <GitHubSyncDialog
+                      sessions={sessions}
+                      folders={folders}
+                      settings={settings}
+                      onDataUpdate={handleDataUpdate}
+                      trigger={
+                        <Button variant="outline" size="icon">
+                          <GithubLogo className="h-5 w-5" />
+                        </Button>
+                      }
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>GitHub Cloud Sync</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
