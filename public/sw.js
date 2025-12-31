@@ -1,25 +1,7 @@
-const CACHE_NAME = 'local-ai-chat-v1'
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/src/main.css',
-  '/src/main.tsx',
-]
+const CACHE_NAME = 'devchat-local-v1'
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache)
-    })
-  )
-})
-
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request)
-    })
-  )
+  self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
@@ -33,6 +15,49 @@ self.addEventListener('activate', (event) => {
           return Promise.resolve()
         })
       )
+    }).then(() => self.clients.claim())
+  )
+})
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+  
+  if (url.hostname === 'github.com' || url.pathname.includes('/auth')) {
+    return
+  }
+  
+  if (event.request.method !== 'GET') {
+    return
+  }
+  
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response
+      }
+      
+      return fetch(event.request).then((response) => {
+        if (!response || response.status !== 200 || response.type === 'error') {
+          return response
+        }
+        
+        const shouldCache = 
+          event.request.url.includes('/src/') ||
+          event.request.url.endsWith('.js') ||
+          event.request.url.endsWith('.css') ||
+          event.request.url.endsWith('.html')
+        
+        if (shouldCache) {
+          const responseToCache = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache)
+          })
+        }
+        
+        return response
+      }).catch(() => {
+        return caches.match('/index.html')
+      })
     })
   )
 })
