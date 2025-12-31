@@ -6,13 +6,14 @@ import { SettingsDialog } from '@/components/SettingsDialog'
 import { ModelSelector } from '@/components/ModelSelector'
 import { SessionSidebar } from '@/components/SessionSidebar'
 import { ExportImportDialog } from '@/components/ExportImportDialog'
+import { CompareView } from '@/components/CompareView'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -32,6 +33,7 @@ function App() {
   const [streamingContent, setStreamingContent] = useState('')
   const [attachedImages, setAttachedImages] = useState<ImageAttachmentType[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [compareMode, setCompareMode] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -402,6 +404,15 @@ function App() {
 
   const displayMessages = messages
 
+  if (compareMode) {
+    return (
+      <>
+        <Toaster />
+        <CompareView settings={settings} onClose={() => setCompareMode(false)} />
+      </>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       <Toaster />
@@ -478,6 +489,23 @@ function App() {
                 disabled={isStreaming}
               />
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCompareMode(true)}
+                    disabled={!settings}
+                  >
+                    <ArrowsLeftRight className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Compare models</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

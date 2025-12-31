@@ -68,6 +68,13 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Click image button → Select image file(s) → Preview thumbnails → Send with message → AI analyzes image(s) → Response includes image context
 - **Success criteria**: Images upload smoothly, multiple images supported, preview shows before sending, images display in chat history, base64 encoding works with OpenAI vision API
 
+### Model Comparison View
+- **Functionality**: Send the same query to multiple models simultaneously and view responses side-by-side
+- **Purpose**: Compare how different models respond to the same prompt, useful for evaluating model quality, consistency, and style
+- **Trigger**: Click compare button in header to switch to compare mode
+- **Progression**: Click compare → Select models via checkboxes → Enter query → Send → Watch all models stream responses in parallel → View side-by-side results in grid layout → Return to chat view
+- **Success criteria**: Multiple models stream simultaneously, responses display in organized grid (1-3 columns based on selection), each response shows model name with icon, streaming indicators and completion badges work correctly, errors display per-model without blocking others
+
 ## Edge Case Handling
 - **Missing API Configuration**: Show prominent setup prompt with clear instructions instead of allowing message attempts
 - **API Connection Failure**: Display clear error message with troubleshooting hints (check endpoint, verify key, ensure API is running)
@@ -83,6 +90,9 @@ This is a straightforward chat interface with settings management, message histo
 - **Session Search**: Filter sessions in real-time as user types, show "no results" state when search has no matches
 - **Folder Management**: Allow folder renaming and color customization, maintain folder state when deleting folders (sessions move to uncategorized), preserve folder expand/collapse state during session
 - **Tag Filtering**: Support multiple tag selection for filtering, show all sessions when no tags selected, combine tag filtering with search functionality
+- **Compare View Errors**: Handle model-specific errors gracefully without blocking other models, show error alerts within model cards, allow continuing with successful models even if some fail
+- **Compare Model Selection**: Require at least one model to be selected, disable compare button when no input provided, preserve last model selection for convenience
+- **Compare Layout**: Adapt grid layout based on number of models (1 column for single model, 2 columns for 2 models, 3 columns for 3+ models on desktop), stack vertically on mobile
 
 ## Design Direction
 The design should feel like a developer's command center - technical, precise, and efficient. A dark-themed, terminal-inspired aesthetic with vibrant accent colors that suggest intelligence and energy. The interface should fade into the background, letting the conversation take center stage.
@@ -170,6 +180,8 @@ Animations should feel technical and precise - like systems activating and data 
   - Tag for tag management
   - CaretRight/CaretDown for folder expand/collapse
   - DotsThree for dropdown menus
+  - ArrowsLeftRight for model comparison toggle
+  - FileArrowDown for export/import functionality
   
 - **Spacing**: 
   - Container padding: p-6 (24px)
@@ -179,6 +191,8 @@ Animations should feel technical and precise - like systems activating and data 
   - Card padding: p-4 (16px)
   - Sidebar width: 320px (w-80)
   - Session list gaps: gap-1 (4px)
+  - Compare view grid gaps: gap-4 (16px)
+  - Model selector horizontal gaps: gap-2 (8px)
   
 - **Mobile**: 
   - Stack settings inline with chat on desktop, use sheet drawer on mobile
@@ -188,3 +202,5 @@ Animations should feel technical and precise - like systems activating and data 
   - Single column layout throughout
   - Sidebar slides over content on mobile, can be toggled via hamburger icon
   - Session search remains accessible in mobile sidebar
+  - Compare view stacks model cards vertically on mobile, maintains grid on tablet/desktop
+  - Compare mode takes full screen with close button to return to chat
