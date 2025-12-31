@@ -32,8 +32,8 @@ export function getSupabaseClient(): SupabaseClient | null {
 }
 
 export function getDefaultSupabaseConfig(): SupabaseConfig | null {
-  const url = import.meta.env.VITE_SUPABASE_URL
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  const url = import.meta.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL
+  const anonKey = import.meta.env.REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
   
   if (url && anonKey) {
     return { url, anonKey }

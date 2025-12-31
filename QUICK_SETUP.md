@@ -21,8 +21,11 @@ You just need to add your **anon key** to enable cloud sync!
 ### Step 2: Update the .env File
 
 1. **Open the `.env` file** in the project root
-2. **Replace the placeholder** on line 2 with your actual anon key:
+2. **Replace the placeholder** with your actual anon key:
    ```env
+   REACT_APP_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
+   REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-actual-key-here
+   
    VITE_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
    VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-actual-key-here
    ```

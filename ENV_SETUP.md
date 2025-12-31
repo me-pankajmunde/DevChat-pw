@@ -19,16 +19,27 @@ This guide explains how to configure the environment variables for DevChat Local
 
 DevChat Local uses Supabase for cloud data synchronization. You need to provide:
 
-#### `VITE_SUPABASE_URL`
+#### Primary Variable Names (React App / GitHub Codespaces)
+
+#### `REACT_APP_SUPABASE_URL`
 - **Description**: Your Supabase project URL
 - **Format**: `https://your-project-ref.supabase.co`
 - **Example**: `https://cgwmhcmioxxteajbtsdd.supabase.co`
 - **Where to find**: Supabase Dashboard → Settings → API → Project URL
 
-#### `VITE_SUPABASE_ANON_KEY`
+#### `REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
 - **Description**: Your Supabase anonymous/public API key
 - **Format**: JWT token starting with `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 - **Where to find**: Supabase Dashboard → Settings → API → Project API keys → `anon` `public`
+
+#### Alternative Variable Names (Vite / Local Development)
+
+The application also supports Vite-style environment variables:
+
+- `VITE_SUPABASE_URL` - Same as `REACT_APP_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY` - Same as `REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+
+**Note**: The application checks `REACT_APP_*` variables first, then falls back to `VITE_*` variables. You can use either naming convention, or both for maximum compatibility.
 
 ## Getting Your Supabase Credentials
 
@@ -46,6 +57,9 @@ You mentioned having access to the database: `cgwmhcmioxxteajbtsdd`
 
 3. Update your `.env` file:
    ```
+   REACT_APP_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
+   REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY=<paste-your-anon-key-here>
+   
    VITE_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
    VITE_SUPABASE_ANON_KEY=<paste-your-anon-key-here>
    ```
@@ -86,7 +100,7 @@ If you need to create a new project:
 **Solutions**:
 1. Restart the development server completely
 2. Clear browser cache and reload
-3. Check for typos in variable names (must start with `VITE_`)
+3. Check for typos in variable names
 4. Ensure `.env` is in the project root directory
 
 ### Invalid Supabase Configuration
@@ -94,7 +108,7 @@ If you need to create a new project:
 **Problem**: "Supabase not initialized" error
 
 **Solutions**:
-1. Verify both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set
+1. Verify both URL and KEY variables are set
 2. Check for extra spaces or quotes in values
 3. Ensure URL format is correct: `https://xxxxx.supabase.co`
 4. Verify the anon key is the complete JWT token
@@ -121,16 +135,19 @@ If you need to create a new project:
 - Set environment variables in your hosting platform
 - Most platforms (Vercel, Netlify, etc.) have environment variable settings
 - Never commit production credentials
-- Use the same variable names: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+- Use either `REACT_APP_*` or `VITE_*` variables depending on your platform
 
 ## Example Configuration
 
 Here's what your `.env` file should look like:
 
 ```bash
-# Supabase Configuration
+# Supabase Configuration (Both naming conventions supported)
+REACT_APP_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
+REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.YOUR_ACTUAL_SECRET_HERE
+
 VITE_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnd21oY21pb3h4dGVhamJ0c2RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTAwMDAwMDAsImV4cCI6MTg0Nzc2NjQwMH0.YOUR_ACTUAL_SECRET_HERE
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.YOUR_ACTUAL_SECRET_HERE
 ```
 
 Replace `YOUR_ACTUAL_SECRET_HERE` with your actual anon key from the Supabase dashboard.
@@ -141,7 +158,7 @@ After setting up your environment variables:
 
 1. Restart the development server
 2. Open the application
-3. Sign in with GitHub (if GitHub auth is enabled in Supabase)
+3. Sign in with GitHub
 4. Start using cloud sync features
 
 For more information on setting up Supabase, see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
