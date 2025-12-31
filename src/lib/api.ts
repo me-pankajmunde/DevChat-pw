@@ -1,5 +1,25 @@
 import { OpenAIMessage } from './types'
 
+function normalizeEndpoint(endpoint: string): string {
+  return endpoint.replace(/\/+$/, '')
+}
+
+function buildChatUrl(endpoint: string): string {
+  const normalized = normalizeEndpoint(endpoint)
+  if (normalized.endsWith('/v1')) {
+    return `${normalized}/chat/completions`
+  }
+  return `${normalized}/v1/chat/completions`
+}
+
+function buildModelsUrl(endpoint: string): string {
+  const normalized = normalizeEndpoint(endpoint)
+  if (normalized.endsWith('/v1')) {
+    return `${normalized}/models`
+  }
+  return `${normalized}/v1/models`
+}
+
 export async function streamChatCompletion(
   endpoint: string,
   apiKey: string,
@@ -10,7 +30,8 @@ export async function streamChatCompletion(
   abortSignal?: AbortSignal
 ) {
   try {
-    const response = await fetch(`${endpoint}/chat/completions`, {
+    const url = buildChatUrl(endpoint)
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,7 +46,8 @@ export async function streamChatCompletion(
     })
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+      const errorText = await response.text().catch(() => response.statusText)
+      throw new Error(`API request failed: ${response.status} - ${errorText}`)
     }
 
     const reader = response.body?.getReader()
@@ -69,7 +91,8 @@ export async function streamChatCompletion(
 
 export async function testConnection(endpoint: string, apiKey: string): Promise<boolean> {
   try {
-    const response = await fetch(`${endpoint}/models`, {
+    const url = buildModelsUrl(endpoint)
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
       },
@@ -82,7 +105,8 @@ export async function testConnection(endpoint: string, apiKey: string): Promise<
 
 export async function fetchModels(endpoint: string, apiKey: string): Promise<string[]> {
   try {
-    const response = await fetch(`${endpoint}/models`, {
+    const url = buildModelsUrl(endpoint)
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
       },
