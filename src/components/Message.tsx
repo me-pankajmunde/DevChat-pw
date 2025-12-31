@@ -87,7 +87,7 @@ export function Message({ message, isStreaming, density = 'normal' }: MessagePro
           </div>
         )}
         <div className={cn('prose prose-invert max-w-none', classes.text)}>
-          {isStreaming && !message.content && (
+          {isStreaming && !message.content ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <div className="flex gap-1">
                 <span className="animate-bounce" style={{ animationDelay: '0ms' }}>●</span>
@@ -96,8 +96,7 @@ export function Message({ message, isStreaming, density = 'normal' }: MessagePro
               </div>
               <span className={classes.timestamp}>Thinking...</span>
             </div>
-          )}
-          {message.content && (
+          ) : message.content ? (
             <Markdown
               components={{
               code: ({ className, children, ...props }: any) => {
@@ -178,7 +177,7 @@ export function Message({ message, isStreaming, density = 'normal' }: MessagePro
           >
             {message.content}
           </Markdown>
-          )}
+          ) : null}
         </div>
         <div className={cn('flex items-center gap-1.5 opacity-40', classes.timestamp, density === 'compact' ? 'mt-1' : 'mt-1.5')}>
           <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
