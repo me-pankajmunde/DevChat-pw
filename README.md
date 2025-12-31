@@ -13,6 +13,10 @@ A developer-focused Progressive Web App for chatting with local and custom OpenA
 - 🗂️ **Session Management** - Create, rename, organize, and search chat sessions
 - 🏷️ **Tags & Folders** - Organize chats with color-coded folders and tags
 - ⚡ **Streaming Responses** - Real-time token streaming for fast feedback
+- 💾 **Robust Data Persistence** - Auto-save, backups, export/import, and data health monitoring
+- 🔄 **Auto-Backup** - Automatic backups every 30 minutes with version control
+- 📊 **Storage Analytics** - Monitor data usage and session statistics
+- 🛠️ **Data Management** - Import/export, cleanup old sessions, repair corrupted data
 
 ## Getting Started
 
@@ -21,6 +25,22 @@ A developer-focused Progressive Web App for chatting with local and custom OpenA
 3. Enter your API key
 4. Select a model from the dropdown
 5. Start chatting!
+
+## Data Management
+
+DevChat Local includes comprehensive data persistence and backup features:
+
+- **Auto-Save**: All changes are automatically saved in real-time
+- **Auto-Backup**: Automatic backups every 30 minutes (keeps last 5)
+- **Manual Backups**: Create snapshots anytime via Data Management dialog
+- **Export/Import**: Download/upload complete data as JSON files
+- **Storage Stats**: Monitor sessions, messages, and storage usage
+- **Data Cleanup**: Delete old sessions or clear all data
+- **Data Repair**: Automatic validation and repair of corrupted data
+
+Access these features via the Database icon (💾) in the header.
+
+For detailed documentation, see [PERSISTENCE.md](PERSISTENCE.md).
 
 ## API Configuration
 

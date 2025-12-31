@@ -7,19 +7,21 @@ import { ModelSelector } from '@/components/ModelSelector'
 import { SessionSidebar } from '@/components/SessionSidebar'
 import { ExportImportDialog } from '@/components/ExportImportDialog'
 import { CompareView } from '@/components/CompareView'
+import { DataManagementDialog } from '@/components/DataManagementDialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
 import { getWallpaperStyle } from '@/lib/wallpapers'
 import { fileToBase64, formatFileSize } from '@/lib/utils'
+import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -42,6 +44,8 @@ function App() {
 
   const currentSession = sessions.find(s => s.id === currentSessionId)
   const messages = currentSession?.messages || []
+
+  useAutoBackup(sessions, folders, settings, true)
 
   const generateSessionTitle = (firstMessage: string): string => {
     const cleaned = firstMessage.trim().replace(/\s+/g, ' ')
@@ -164,6 +168,24 @@ function App() {
   const handleImport = (importedSessions: ChatSession[], importedFolders: SessionFolder[]) => {
     setSessions(current => [...(current || []), ...importedSessions])
     setFolders(current => [...(current || []), ...importedFolders])
+  }
+
+  const handleDataUpdate = (
+    newSessions: ChatSession[],
+    newFolders: SessionFolder[],
+    newSettings: ChatSettings | null
+  ) => {
+    setSessions(newSessions)
+    setFolders(newFolders)
+    if (newSettings) {
+      setSettings(newSettings)
+    }
+    
+    if (newSessions.length > 0 && !newSessions.find(s => s.id === currentSessionId)) {
+      setCurrentSessionId(newSessions[0].id)
+    } else if (newSessions.length === 0) {
+      setCurrentSessionId(null)
+    }
   }
 
   useEffect(() => {
@@ -530,6 +552,28 @@ function App() {
                 disabled={isStreaming}
               />
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <DataManagementDialog
+                      sessions={sessions}
+                      folders={folders}
+                      settings={settings}
+                      onDataUpdate={handleDataUpdate}
+                      trigger={
+                        <Button variant="outline" size="icon">
+                          <Database className="h-5 w-5" />
+                        </Button>
+                      }
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Data Management</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
