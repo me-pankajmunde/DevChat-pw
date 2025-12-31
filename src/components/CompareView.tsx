@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -11,7 +10,6 @@ import { ChatSettings, OpenAIMessage } from '@/lib/types'
 import { streamChatCompletion, fetchModels } from '@/lib/api'
 import { getModelIcon } from '@/lib/model-icons'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -254,7 +252,7 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden p-4">
+          <ScrollArea className="flex-1">
             {results.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center max-w-md">
@@ -265,20 +263,17 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
                 </div>
               </div>
             ) : (
-              <div className={cn(
-                "grid gap-4 h-full",
-                selectedModels.length === 1 ? "grid-cols-1" : 
-                selectedModels.length === 2 ? "grid-cols-1 md:grid-cols-2" :
-                "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-              )}>
+              <div className="max-w-6xl mx-auto p-4 space-y-6">
                 {results.map((result, index) => (
-                  <Card key={result.model} className="flex flex-col overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-lg">
+                  <div key={result.model} className="border border-border rounded-lg overflow-hidden bg-card">
+                    <div className="bg-muted/50 px-6 py-4 border-b border-border flex items-center justify-between">
+                      <div className="flex items-center gap-2">
                         {getModelIcon(result.model)}
-                        {result.model}
+                        <h3 className="text-lg font-semibold">{result.model}</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
                         {result.isStreaming && (
-                          <Badge variant="secondary" className="ml-auto">
+                          <Badge variant="secondary">
                             <div className="flex items-center gap-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                               Streaming
@@ -286,14 +281,14 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
                           </Badge>
                         )}
                         {result.completed && !result.error && (
-                          <Badge variant="default" className="ml-auto">Complete</Badge>
+                          <Badge variant="default">Complete</Badge>
                         )}
                         {result.error && (
-                          <Badge variant="destructive" className="ml-auto">Error</Badge>
+                          <Badge variant="destructive">Error</Badge>
                         )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-1 overflow-hidden">
+                      </div>
+                    </div>
+                    <div className="px-6 py-4">
                       {result.error ? (
                         <Alert variant="destructive">
                           <WarningCircle className="h-4 w-4" />
@@ -302,42 +297,40 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
                           </AlertDescription>
                         </Alert>
                       ) : (
-                        <ScrollArea className="h-full">
-                          <div className="prose prose-sm max-w-none">
-                            <ReactMarkdown
-                              components={{
-                                code({ node, inline, className, children, ...props }: any) {
-                                  const match = /language-(\w+)/.exec(className || '')
-                                  return !inline && match ? (
-                                    <div className="code-block">
-                                      <SyntaxHighlighter
-                                        style={vscDarkPlus}
-                                        language={match[1]}
-                                        PreTag="div"
-                                        {...props}
-                                      >
-                                        {String(children).replace(/\n$/, '')}
-                                      </SyntaxHighlighter>
-                                    </div>
-                                  ) : (
-                                    <code className={className} {...props}>
-                                      {children}
-                                    </code>
-                                  )
-                                },
-                              }}
-                            >
-                              {result.content || 'Waiting for response...'}
-                            </ReactMarkdown>
-                          </div>
-                        </ScrollArea>
+                        <div className="prose prose-sm max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              code({ node, inline, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '')
+                                return !inline && match ? (
+                                  <div className="code-block">
+                                    <SyntaxHighlighter
+                                      style={vscDarkPlus}
+                                      language={match[1]}
+                                      PreTag="div"
+                                      {...props}
+                                    >
+                                      {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                  </div>
+                                ) : (
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                )
+                              },
+                            }}
+                          >
+                            {result.content || 'Waiting for response...'}
+                          </ReactMarkdown>
+                        </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
-          </div>
+          </ScrollArea>
         </>
       )}
     </div>
