@@ -10,7 +10,7 @@ import { ChatSettings, OpenAIMessage } from '@/lib/types'
 import { streamChatCompletion, fetchModels } from '@/lib/api'
 import { getModelIcon } from '@/lib/model-icons'
 import { toast } from 'sonner'
-import ReactMarkdown from 'react-markdown'
+import Markdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
@@ -298,7 +298,7 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
                         </Alert>
                       ) : (
                         <div className="prose prose-sm max-w-none">
-                          <ReactMarkdown
+                          <Markdown
                             components={{
                               code({ node, inline, className, children, ...props }: any) {
                                 const match = /language-(\w+)/.exec(className || '')
@@ -322,7 +322,7 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
                             }}
                           >
                             {result.content || 'Waiting for response...'}
-                          </ReactMarkdown>
+                          </Markdown>
                         </div>
                       )}
                     </div>
