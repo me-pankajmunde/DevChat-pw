@@ -1,8 +1,8 @@
-import { Brain, ChatCircleDots, Cpu, Lightning, Sparkle, Robot } from '@phosphor-icons/react'
+import { Brain, ChatCircleDots, Cpu, Lightning, Sparkle, Star } from '@phosphor-icons/react'
 
 export function getModelIcon(model?: string) {
   if (!model) {
-    return <Robot weight="duotone" className="h-6 w-6" />
+    return <Sparkle weight="duotone" className="h-6 w-6" />
   }
 
   const modelLower = model.toLowerCase()
@@ -23,16 +23,20 @@ export function getModelIcon(model?: string) {
     return <ChatCircleDots weight="duotone" className="h-6 w-6" />
   }
   
+  if (modelLower.includes('gemini')) {
+    return <Star weight="duotone" className="h-6 w-6" />
+  }
+  
   if (modelLower.includes('llama') || modelLower.includes('mistral') || modelLower.includes('gemma')) {
     return <Cpu weight="duotone" className="h-6 w-6" />
   }
 
-  return <Robot weight="duotone" className="h-6 w-6" />
+  return <Sparkle weight="duotone" className="h-6 w-6" />
 }
 
 export function getModelColor(model?: string) {
   if (!model) {
-    return 'text-muted-foreground'
+    return 'text-accent'
   }
 
   const modelLower = model.toLowerCase()
@@ -53,9 +57,13 @@ export function getModelColor(model?: string) {
     return 'text-chart-2'
   }
   
+  if (modelLower.includes('gemini')) {
+    return 'text-chart-1'
+  }
+  
   if (modelLower.includes('llama') || modelLower.includes('mistral') || modelLower.includes('gemma')) {
     return 'text-chart-5'
   }
 
-  return 'text-muted-foreground'
+  return 'text-accent'
 }
