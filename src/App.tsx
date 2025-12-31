@@ -321,12 +321,6 @@ function App() {
 
     if (!userMessageToRetry) return
 
-    updateCurrentSession(session => ({
-      ...session,
-      messages: messagesToKeep,
-      updatedAt: Date.now()
-    }))
-
     const newUserMessage: Message = {
       id: `retry-${Date.now()}`,
       role: 'user',
@@ -340,9 +334,11 @@ function App() {
     const shouldUpdateTitle = messagesToKeep.length === 0
     const titleToSet = shouldUpdateTitle ? generateSessionTitle(newUserMessage.content) : undefined
 
+    const updatedMessages = [...messagesToKeep, newUserMessage]
+
     updateCurrentSession(session => ({
       ...session,
-      messages: [...messagesToKeep, newUserMessage],
+      messages: updatedMessages,
       updatedAt: Date.now(),
       ...(titleToSet && { title: titleToSet })
     }))
@@ -355,7 +351,7 @@ function App() {
 
     abortControllerRef.current = new AbortController()
 
-    const conversationMessages = messagesToKeep.concat(newUserMessage).map((m) => {
+    const conversationMessages = updatedMessages.map((m) => {
       if (m.images && m.images.length > 0) {
         const contentParts: Array<{type: 'text' | 'image_url', text?: string, image_url?: {url: string, detail?: 'auto'}}> = []
         
@@ -453,12 +449,17 @@ function App() {
     const shouldUpdateTitle = messages.length === 0
     const titleToSet = shouldUpdateTitle ? generateSessionTitle(userMessage.content) : undefined
 
-    updateCurrentSession(session => ({
-      ...session,
-      messages: [...session.messages, userMessage],
-      updatedAt: Date.now(),
-      ...(titleToSet && { title: titleToSet })
-    }))
+    let updatedMessages: Message[] = []
+    
+    updateCurrentSession(session => {
+      updatedMessages = [...session.messages, userMessage]
+      return {
+        ...session,
+        messages: updatedMessages,
+        updatedAt: Date.now(),
+        ...(titleToSet && { title: titleToSet })
+      }
+    })
 
     setInput('')
     const currentImages = [...attachedImages]
@@ -469,7 +470,7 @@ function App() {
 
     abortControllerRef.current = new AbortController()
 
-    const conversationMessages = messages.concat(userMessage).map((m) => {
+    const conversationMessages = updatedMessages.map((m) => {
       if (m.images && m.images.length > 0) {
         const contentParts: Array<{type: 'text' | 'image_url', text?: string, image_url?: {url: string, detail?: 'auto'}}> = []
         
