@@ -623,11 +623,17 @@ function App() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
-                {currentSession?.title || 'DevChat Local'}
-              </h1>
-              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Developer-focused OpenAI API client</p>
+            <div className="flex items-center gap-3 min-w-0">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                <path d="M16 2L4 8V16C4 23.732 9.523 28 16 30C22.477 28 28 23.732 28 16V8L16 2Z" fill="currentColor" className="text-primary"/>
+                <path d="M16 8L10 11V16C10 19.866 12.761 22 16 23C19.239 22 22 19.866 22 16V11L16 8Z" fill="currentColor" className="text-background"/>
+              </svg>
+              <div className="min-w-0">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
+                  DevChat Local
+                </h1>
+                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Developer-focused OpenAI API client</p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">

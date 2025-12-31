@@ -340,8 +340,26 @@ export function SessionSidebar({
     )
   }
 
+  const currentSession = sessions.find(s => s.id === currentSessionId)
+
   return (
     <div className="flex flex-col h-full bg-card border-r border-border">
+      {currentSession && (
+        <div className="px-4 pt-4 pb-3 border-b border-border">
+          <div className="flex items-center gap-2 mb-1">
+            <ChatCircle className="h-5 w-5 text-primary" weight="fill" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Chat</span>
+          </div>
+          <h2 className="text-lg font-semibold text-foreground truncate">
+            {currentSession.title}
+          </h2>
+          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+            <span>{currentSession.messages.length} {currentSession.messages.length === 1 ? 'message' : 'messages'}</span>
+            <span>•</span>
+            <span>{formatDistanceToNow(currentSession.updatedAt, { addSuffix: true })}</span>
+          </div>
+        </div>
+      )}
       <div className="p-4 border-b border-border space-y-3">
         <Button 
           onClick={onCreateSession}
