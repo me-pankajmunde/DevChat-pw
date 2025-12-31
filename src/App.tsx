@@ -92,6 +92,11 @@ function App() {
       const config = await getSupabaseConfig()
       if (config) {
         initializeSupabase(config.url, config.anonKey)
+        console.log('✅ Supabase initialized successfully')
+        console.log('📦 Cloud sync is available')
+      } else {
+        console.warn('⚠️ Supabase not configured')
+        console.log('💡 To enable cloud sync, configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env')
       }
     }
     initSupabase()

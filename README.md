@@ -22,6 +22,27 @@ A developer-focused Progressive Web App for chatting with local and custom OpenA
 
 ## Getting Started
 
+### 1. Environment Setup (Required for Cloud Sync)
+
+DevChat Local uses Supabase for cloud data synchronization. Before using the app:
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Add your Supabase credentials to `.env`:
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   ```
+
+3. For detailed setup instructions, see [ENV_SETUP.md](ENV_SETUP.md)
+
+**Note**: Cloud sync requires proper Supabase configuration. If you don't set up Supabase, the app will still work but without cloud backup features.
+
+### 2. API Configuration
+
 1. Open the app and click the settings icon
 2. Configure your API endpoint (e.g., `http://127.0.0.1:5001/v1`)
 3. Enter your API key
@@ -45,6 +66,7 @@ Access local data management via the HardDrives icon (💾) in the header.
 Access Supabase Cloud Sync via the Database icon (🗄️) in the header.
 
 For detailed documentation:
+- [ENV_SETUP.md](ENV_SETUP.md) - Environment variables configuration
 - [PERSISTENCE.md](PERSISTENCE.md) - Local data persistence
 - [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Supabase Cloud Sync guide
 

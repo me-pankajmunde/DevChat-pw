@@ -110,7 +110,7 @@ export function SupabaseSyncDialog({
     const client = getSupabaseClient()
     if (!client) {
       toast.error('Supabase not configured', {
-        description: 'Please configure Supabase URL and API key in Settings first'
+        description: 'Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file'
       })
       return
     }

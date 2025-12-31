@@ -31,7 +31,22 @@ export function getSupabaseClient(): SupabaseClient | null {
   return supabaseClient
 }
 
+export function getDefaultSupabaseConfig(): SupabaseConfig | null {
+  const url = import.meta.env.VITE_SUPABASE_URL
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  
+  if (url && anonKey) {
+    return { url, anonKey }
+  }
+  return null
+}
+
 export async function getSupabaseConfig(): Promise<SupabaseConfig | null> {
+  const defaultConfig = getDefaultSupabaseConfig()
+  if (defaultConfig) {
+    return defaultConfig
+  }
+  
   try {
     const config = await window.spark.kv.get<SupabaseConfig>('supabase-config')
     return config || null

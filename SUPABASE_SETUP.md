@@ -90,11 +90,22 @@ CREATE TRIGGER update_chat_backups_updated_at
 
 ### 5. Configure DevChat Local
 
-1. Open DevChat Local
-2. Click the Settings (gear) icon
-3. Scroll down to "Supabase Cloud Sync" section
-4. Enter your Supabase URL and Anon Key
-5. Click "Save Supabase Config"
+**The Supabase configuration is now pre-configured using environment variables.**
+
+1. Copy the `.env.example` file to `.env` in the project root
+2. Edit the `.env` file and add your Supabase credentials:
+   ```
+   VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
+3. For the database `cgwmhcmioxxteajbtsdd`, use:
+   ```
+   VITE_SUPABASE_URL=https://cgwmhcmioxxteajbtsdd.supabase.co
+   VITE_SUPABASE_ANON_KEY=<get-from-supabase-dashboard>
+   ```
+4. Restart the application for the environment variables to take effect
+
+**Note:** The manual Supabase configuration option has been removed from settings. All Supabase configuration is now done via the `.env` file for better security and easier deployment.
 
 ### 6. Sign In and Sync
 
@@ -155,7 +166,7 @@ The `data` JSONB column in the `chat_backups` table contains:
 
 ### "Supabase not configured"
 
-Make sure you've entered both the Supabase URL and Anon Key in Settings.
+Check that your `.env` file exists and contains valid Supabase URL and Anon Key values. Restart the application after making changes to the `.env` file.
 
 ### "Not authenticated"
 
