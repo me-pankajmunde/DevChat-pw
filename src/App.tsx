@@ -449,10 +449,9 @@ function App() {
     const shouldUpdateTitle = messages.length === 0
     const titleToSet = shouldUpdateTitle ? generateSessionTitle(userMessage.content) : undefined
 
-    let updatedMessages: Message[] = []
+    const updatedMessages: Message[] = [...messages, userMessage]
     
     updateCurrentSession(session => {
-      updatedMessages = [...session.messages, userMessage]
       return {
         ...session,
         messages: updatedMessages,

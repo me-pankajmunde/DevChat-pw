@@ -30,18 +30,24 @@ export async function streamChatCompletion(
   abortSignal?: AbortSignal
 ) {
   try {
+    if (!messages || messages.length === 0) {
+      throw new Error('Messages array is empty')
+    }
+
     const url = buildChatUrl(endpoint)
+    const requestBody = {
+      model,
+      messages,
+      stream: true,
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: true,
-      }),
+      body: JSON.stringify(requestBody),
       signal: abortSignal,
     })
 
