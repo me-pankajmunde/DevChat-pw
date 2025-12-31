@@ -11,6 +11,7 @@ import { ChatSettings, MessageDensity, Wallpaper } from '@/lib/types'
 import { testConnection, fetchModels } from '@/lib/api'
 import { themes, applyTheme } from '@/lib/themes'
 import { wallpapers, getWallpaperStyle } from '@/lib/wallpapers'
+import { getSupabaseConfig, saveSupabaseConfig, initializeSupabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 interface SettingsDialogProps {
@@ -33,7 +34,40 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [models, setModels] = useState<string[]>([])
   const [loadingModels, setLoadingModels] = useState(false)
+  const [supabaseUrl, setSupabaseUrl] = useState('')
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (open) {
+      loadSupabaseConfig()
+    }
+  }, [open])
+
+  const loadSupabaseConfig = async () => {
+    const config = await getSupabaseConfig()
+    if (config) {
+      setSupabaseUrl(config.url)
+      setSupabaseAnonKey(config.anonKey)
+    }
+  }
+
+  const handleSaveSupabaseConfig = async () => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      toast.error('Please provide both Supabase URL and API key')
+      return
+    }
+
+    try {
+      await saveSupabaseConfig({
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+      })
+      toast.success('Supabase configuration saved')
+    } catch (error) {
+      toast.error('Failed to save Supabase configuration')
+    }
+  }
 
   useEffect(() => {
     if (open && apiEndpoint && apiKey) {
@@ -422,6 +456,60 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             <p className="text-xs text-muted-foreground">
               Add a subtle background pattern or custom image to the chat area
             </p>
+          </div>
+
+          <Separator className="my-2" />
+
+          <div className="flex flex-col gap-2">
+            <Label className="text-base font-semibold">Supabase Cloud Sync</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Configure Supabase for cloud data synchronization
+            </p>
+            
+            <Label htmlFor="supabase-url">Supabase URL</Label>
+            <Input
+              id="supabase-url"
+              type="url"
+              placeholder="https://xxxxx.supabase.co"
+              value={supabaseUrl}
+              onChange={(e) => setSupabaseUrl(e.target.value)}
+            />
+            
+            <Label htmlFor="supabase-key">Supabase Anon Key</Label>
+            <Input
+              id="supabase-key"
+              type="password"
+              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              value={supabaseAnonKey}
+              onChange={(e) => setSupabaseAnonKey(e.target.value)}
+            />
+            
+            <Button
+              variant="outline"
+              onClick={handleSaveSupabaseConfig}
+              disabled={!supabaseUrl || !supabaseAnonKey}
+              className="mt-2"
+            >
+              Save Supabase Config
+            </Button>
+            
+            <p className="text-xs text-muted-foreground mt-2">
+              Get your Supabase credentials from your project settings. You'll need to create a 'chat_backups' table with the following structure:
+            </p>
+            <pre className="text-xs bg-muted p-2 rounded-md mt-1 overflow-x-auto">
+{`CREATE TABLE chat_backups (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users NOT NULL,
+  data JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE chat_backups ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can access own backups"
+  ON chat_backups FOR ALL
+  USING (auth.uid() = user_id);`}
+            </pre>
           </div>
 
           <Separator className="my-2" />

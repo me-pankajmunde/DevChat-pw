@@ -82,12 +82,12 @@ This is a straightforward chat interface with settings management, message histo
 - **Progression**: Click compare → Select models via checkboxes → Enter query → Send → Watch all models stream responses in parallel → View side-by-side results in grid layout → Return to chat view
 - **Success criteria**: Multiple models stream simultaneously, responses display in organized grid (1-3 columns based on selection), each response shows model name with icon, streaming indicators and completion badges work correctly, errors display per-model without blocking others
 
-### GitHub Cloud Sync
-- **Functionality**: Backup and restore chat data to/from a private GitHub repository with automatic sync capabilities
-- **Purpose**: Provide cloud backup, enable cross-device sync, protect against data loss, and maintain backup history
-- **Trigger**: Click GitHub icon in header, or automatic sync at configured intervals
-- **Progression**: Manual: Click GitHub icon → Authenticate with GitHub → Click "Sync to GitHub" → Repository created automatically → Data uploaded → Success confirmation. Auto: Enable auto-sync → Set interval → Automatic backups run in background → Toast notifications on completion
-- **Success criteria**: Private repository created successfully, data synced without errors, conflict resolution works correctly, auto-sync runs on schedule, restore functionality recovers data accurately, sync status displays correctly
+### Supabase Cloud Sync
+- **Functionality**: Backup and restore chat data to/from Supabase database with automatic sync capabilities and GitHub authentication
+- **Purpose**: Provide cloud backup using modern database infrastructure, enable cross-device sync, protect against data loss, and maintain backup history with Row Level Security
+- **Trigger**: Click Database icon in header, or automatic sync at configured intervals
+- **Progression**: Manual: Click Database icon → Sign in with GitHub → Configure Supabase credentials in Settings → Click "Sync to Supabase" → Data uploaded to database → Success confirmation. Auto: Enable auto-sync → Set interval → Automatic backups run in background → Toast notifications on completion
+- **Success criteria**: Supabase connection established successfully, data synced without errors, conflict resolution works correctly (merge/remote/local options), auto-sync runs on schedule, restore functionality recovers data accurately, sync status displays correctly, Row Level Security ensures data privacy
 
 ## Edge Case Handling
 - **Unauthenticated State**: Show branded login screen with feature highlights, prevent access to app features until authenticated

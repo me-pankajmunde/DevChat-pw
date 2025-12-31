@@ -15,7 +15,7 @@ A developer-focused Progressive Web App for chatting with local and custom OpenA
 - ⚡ **Streaming Responses** - Real-time token streaming for fast feedback
 - 💾 **Robust Data Persistence** - Auto-save, backups, export/import, and data health monitoring
 - 🔄 **Auto-Backup** - Automatic backups every 30 minutes with version control
-- ☁️ **GitHub Cloud Sync** - Backup and restore data to your private GitHub repository
+- ☁️ **Supabase Cloud Sync** - Backup and restore data to your Supabase database
 - 📊 **Storage Analytics** - Monitor data usage and session statistics
 - 🛠️ **Data Management** - Import/export, cleanup old sessions, repair corrupted data
 - 🔀 **Model Comparison** - Compare responses from multiple models side-by-side
@@ -34,19 +34,19 @@ DevChat Local includes comprehensive data persistence and backup features:
 
 - **Auto-Save**: All changes are automatically saved in real-time
 - **Auto-Backup**: Automatic backups every 30 minutes (keeps last 5)
-- **GitHub Cloud Sync**: Backup to private GitHub repository with auto-sync
+- **Supabase Cloud Sync**: Backup to Supabase database with auto-sync
 - **Manual Backups**: Create snapshots anytime via Data Management dialog
 - **Export/Import**: Download/upload complete data as JSON files
 - **Storage Stats**: Monitor sessions, messages, and storage usage
 - **Data Cleanup**: Delete old sessions or clear all data
 - **Data Repair**: Automatic validation and repair of corrupted data
 
-Access local data management via the Database icon (💾) in the header.
-Access GitHub Cloud Sync via the GitHub icon (🐙) in the header.
+Access local data management via the HardDrives icon (💾) in the header.
+Access Supabase Cloud Sync via the Database icon (🗄️) in the header.
 
 For detailed documentation:
 - [PERSISTENCE.md](PERSISTENCE.md) - Local data persistence
-- [GITHUB_SYNC.md](GITHUB_SYNC.md) - GitHub Cloud Sync guide
+- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Supabase Cloud Sync guide
 
 ## API Configuration
 

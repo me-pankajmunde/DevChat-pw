@@ -8,7 +8,7 @@ import { SessionSidebar } from '@/components/SessionSidebar'
 import { ExportImportDialog } from '@/components/ExportImportDialog'
 import { CompareView } from '@/components/CompareView'
 import { DataManagementDialog } from '@/components/DataManagementDialog'
-import { GitHubSyncDialog } from '@/components/GitHubSyncDialog'
+import { SupabaseSyncDialog } from '@/components/SupabaseSyncDialog'
 import { LoginScreen } from '@/components/LoginScreen'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,15 +25,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, GithubLogo, SignOut } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, HardDrives, SignOut } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
 import { applyTheme } from '@/lib/themes'
 import { getWallpaperStyle } from '@/lib/wallpapers'
 import { fileToBase64, formatFileSize } from '@/lib/utils'
+import { initializeSupabase, getSupabaseConfig } from '@/lib/supabase'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
-import { useGitHubAutoSync } from '@/hooks/use-github-sync'
+import { useSupabaseAutoSync } from '@/hooks/use-supabase-sync'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -69,7 +70,7 @@ function App() {
   const messages = currentSession?.messages || []
 
   useAutoBackup(sessions, folders, settings, true)
-  useGitHubAutoSync(sessions, folders, settings, true)
+  useSupabaseAutoSync(sessions, folders, settings, true)
 
   useEffect(() => {
     const initUser = async () => {
@@ -83,6 +84,16 @@ function App() {
       }
     }
     initUser()
+  }, [])
+
+  useEffect(() => {
+    const initSupabase = async () => {
+      const config = await getSupabaseConfig()
+      if (config) {
+        initializeSupabase(config.url, config.anonKey)
+      }
+    }
+    initSupabase()
   }, [])
 
   const handleLogin = async () => {
@@ -631,21 +642,21 @@ function App() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
-                    <GitHubSyncDialog
+                    <SupabaseSyncDialog
                       sessions={sessions}
                       folders={folders}
                       settings={settings}
                       onDataUpdate={handleDataUpdate}
                       trigger={
                         <Button variant="outline" size="icon">
-                          <GithubLogo className="h-5 w-5" />
+                          <Database className="h-5 w-5" />
                         </Button>
                       }
                     />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>GitHub Cloud Sync</p>
+                  <p>Supabase Cloud Sync</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -660,7 +671,7 @@ function App() {
                       onDataUpdate={handleDataUpdate}
                       trigger={
                         <Button variant="outline" size="icon">
-                          <Database className="h-5 w-5" />
+                          <HardDrives className="h-5 w-5" />
                         </Button>
                       }
                     />
