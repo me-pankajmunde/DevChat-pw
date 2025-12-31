@@ -37,6 +37,7 @@ import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { useSupabaseAutoSync } from '@/hooks/use-supabase-sync'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface UserInfo {
   login: string
@@ -566,43 +567,60 @@ function App() {
     <div className="flex h-screen bg-background text-foreground">
       <Toaster />
       
-      {sidebarOpen && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className={cn(
-            "w-80 shrink-0 border-r border-border z-50",
-            "md:relative fixed inset-y-0 left-0 bg-background"
-          )}>
-            <SessionSidebar
-              sessions={sessions}
-              currentSessionId={currentSessionId}
-              folders={folders}
-              onSelectSession={(sessionId) => {
-                selectSession(sessionId)
-                if (window.innerWidth < 768) {
-                  setSidebarOpen(false)
-                }
-              }}
-              onCreateSession={() => {
-                createNewSession()
-                if (window.innerWidth < 768) {
-                  setSidebarOpen(false)
-                }
-              }}
-              onDeleteSession={deleteSession}
-              onRenameSession={renameSession}
-              onCreateFolder={createFolder}
-              onDeleteFolder={deleteFolder}
-              onRenameFolder={renameFolder}
-              onMoveToFolder={moveToFolder}
-              onUpdateTags={updateTags}
+      <AnimatePresence mode="wait">
+        {sidebarOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setSidebarOpen(false)}
             />
-          </div>
-        </>
-      )}
+            <motion.div 
+              initial={{ x: -320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -320, opacity: 0 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                mass: 0.8
+              }}
+              className={cn(
+                "w-80 shrink-0 border-r border-border z-50",
+                "md:relative fixed inset-y-0 left-0 bg-background"
+              )}
+            >
+              <SessionSidebar
+                sessions={sessions}
+                currentSessionId={currentSessionId}
+                folders={folders}
+                onSelectSession={(sessionId) => {
+                  selectSession(sessionId)
+                  if (window.innerWidth < 768) {
+                    setSidebarOpen(false)
+                  }
+                }}
+                onCreateSession={() => {
+                  createNewSession()
+                  if (window.innerWidth < 768) {
+                    setSidebarOpen(false)
+                  }
+                }}
+                onDeleteSession={deleteSession}
+                onRenameSession={renameSession}
+                onCreateFolder={createFolder}
+                onDeleteFolder={deleteFolder}
+                onRenameFolder={renameFolder}
+                onMoveToFolder={moveToFolder}
+                onUpdateTags={updateTags}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm px-4 md:px-6 py-4 flex items-center justify-between gap-4">
@@ -615,7 +633,12 @@ function App() {
                     size="icon"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
-                    <SidebarIcon className="h-5 w-5" />
+                    <motion.div
+                      animate={{ rotate: sidebarOpen ? 0 : 180 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <SidebarIcon className="h-5 w-5" />
+                    </motion.div>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
