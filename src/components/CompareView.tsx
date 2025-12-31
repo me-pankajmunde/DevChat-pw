@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneRight, WarningCircle, X } from '@phosphor-icons/react'
+import { PaperPlaneRight, WarningCircle, X, StopCircle } from '@phosphor-icons/react'
 import { ChatSettings, OpenAIMessage } from '@/lib/types'
 import { streamChatCompletion, fetchModels } from '@/lib/api'
 import { getModelIcon } from '@/lib/model-icons'
@@ -36,6 +36,7 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
   const [results, setResults] = useState<CompareResult[]>([])
   const [isComparing, setIsComparing] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const abortControllersRef = useRef<AbortController[]>([])
 
   useEffect(() => {
     if (settings) {
@@ -62,10 +63,27 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
     })
   }
 
+  const handleStop = () => {
+    abortControllersRef.current.forEach(controller => controller.abort())
+    abortControllersRef.current = []
+    setIsComparing(false)
+    
+    setResults(current =>
+      current.map(result => ({
+        ...result,
+        isStreaming: false,
+        completed: true
+      }))
+    )
+    
+    toast.info('Comparison stopped')
+  }
+
   const handleCompare = async () => {
     if (!input.trim() || !settings || selectedModels.length === 0 || isComparing) return
 
     setIsComparing(true)
+    abortControllersRef.current = selectedModels.map(() => new AbortController())
     
     const initialResults: CompareResult[] = selectedModels.map(model => ({
       model,
@@ -85,49 +103,57 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
     const promises = selectedModels.map(async (model, index) => {
       let fullContent = ''
       
-      await streamChatCompletion(
-        settings.apiEndpoint,
-        settings.apiKey,
-        messages,
-        model,
-        (token) => {
-          fullContent += token
-          setResults(current => {
-            const updated = [...current]
-            updated[index] = {
-              ...updated[index],
-              content: fullContent,
-              isStreaming: true
-            }
-            return updated
-          })
-        },
-        (error) => {
-          setResults(current => {
-            const updated = [...current]
-            updated[index] = {
-              ...updated[index],
-              error,
-              isStreaming: false,
-              completed: true
-            }
-            return updated
-          })
-        }
-      )
+      try {
+        await streamChatCompletion(
+          settings.apiEndpoint,
+          settings.apiKey,
+          messages,
+          model,
+          (token) => {
+            fullContent += token
+            setResults(current => {
+              const updated = [...current]
+              updated[index] = {
+                ...updated[index],
+                content: fullContent,
+                isStreaming: true
+              }
+              return updated
+            })
+          },
+          (error) => {
+            setResults(current => {
+              const updated = [...current]
+              updated[index] = {
+                ...updated[index],
+                error,
+                isStreaming: false,
+                completed: true
+              }
+              return updated
+            })
+          },
+          abortControllersRef.current[index].signal
+        )
 
-      setResults(current => {
-        const updated = [...current]
-        updated[index] = {
-          ...updated[index],
-          isStreaming: false,
-          completed: true
+        setResults(current => {
+          const updated = [...current]
+          updated[index] = {
+            ...updated[index],
+            isStreaming: false,
+            completed: true
+          }
+          return updated
+        })
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return
         }
-        return updated
-      })
+      }
     })
 
     await Promise.all(promises)
+    abortControllersRef.current = []
     setIsComparing(false)
     toast.success('Comparison complete')
   }
@@ -205,14 +231,25 @@ export function CompareView({ settings, onClose }: CompareViewProps) {
                   disabled={isComparing}
                   className="min-h-[80px] max-h-[200px] resize-none"
                 />
-                <Button
-                  onClick={handleCompare}
-                  disabled={!input.trim() || selectedModels.length === 0 || isComparing}
-                  size="icon"
-                  className="h-[80px] w-[80px] shrink-0"
-                >
-                  <PaperPlaneRight className="h-5 w-5" weight="fill" />
-                </Button>
+                {isComparing ? (
+                  <Button
+                    onClick={handleStop}
+                    variant="destructive"
+                    size="icon"
+                    className="h-[80px] w-[80px] shrink-0"
+                  >
+                    <StopCircle className="h-5 w-5" weight="fill" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCompare}
+                    disabled={!input.trim() || selectedModels.length === 0}
+                    size="icon"
+                    className="h-[80px] w-[80px] shrink-0"
+                  >
+                    <PaperPlaneRight className="h-5 w-5" weight="fill" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>

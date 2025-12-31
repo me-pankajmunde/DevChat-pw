@@ -6,7 +6,8 @@ export async function streamChatCompletion(
   messages: OpenAIMessage[],
   model: string,
   onToken: (token: string) => void,
-  onError: (error: string) => void
+  onError: (error: string) => void,
+  abortSignal?: AbortSignal
 ) {
   try {
     const response = await fetch(`${endpoint}/chat/completions`, {
@@ -20,6 +21,7 @@ export async function streamChatCompletion(
         messages,
         stream: true,
       }),
+      signal: abortSignal,
     })
 
     if (!response.ok) {
@@ -58,6 +60,9 @@ export async function streamChatCompletion(
       }
     }
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error
+    }
     onError(error instanceof Error ? error.message : 'Unknown error occurred')
   }
 }

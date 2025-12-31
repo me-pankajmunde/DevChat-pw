@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, ArrowClockwise } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -37,7 +37,9 @@ function App() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const [autoScroll, setAutoScroll] = useState(true)
+  const [lastUserMessage, setLastUserMessage] = useState<Message | null>(null)
 
   const currentSession = sessions.find(s => s.id === currentSessionId)
   const messages = currentSession?.messages || []
@@ -267,6 +269,57 @@ function App() {
     setAttachedImages((prev) => prev.filter((img) => img.id !== imageId))
   }
 
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+      setIsStreaming(false)
+      
+      if (streamingContent) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: streamingContent,
+          timestamp: Date.now(),
+          model: settings?.model,
+        }
+        updateCurrentSession(session => ({
+          ...session,
+          messages: [...session.messages, assistantMessage],
+          updatedAt: Date.now()
+        }))
+      }
+      
+      setStreamingContent('')
+      toast.info('Response stopped')
+    }
+  }
+
+  const handleRetry = async () => {
+    if (!lastUserMessage || !settings || !currentSessionId) return
+
+    updateCurrentSession(session => {
+      const messagesWithoutLast = session.messages.filter(m => m.id !== lastUserMessage.id)
+      const lastAssistantIndex = messagesWithoutLast.length - 1
+      const shouldRemoveLastAssistant = lastAssistantIndex >= 0 && messagesWithoutLast[lastAssistantIndex].role === 'assistant'
+      
+      return {
+        ...session,
+        messages: shouldRemoveLastAssistant ? messagesWithoutLast.slice(0, -1) : messagesWithoutLast,
+        updatedAt: Date.now()
+      }
+    })
+
+    setInput(lastUserMessage.content === '(Image attached)' ? '' : lastUserMessage.content)
+    if (lastUserMessage.images) {
+      setAttachedImages(lastUserMessage.images)
+    }
+    
+    setTimeout(() => {
+      handleSend()
+    }, 100)
+  }
+
   const handleSend = async () => {
     if ((!input.trim() && attachedImages.length === 0) || !settings || isStreaming || !currentSessionId) return
 
@@ -277,6 +330,8 @@ function App() {
       timestamp: Date.now(),
       images: attachedImages.length > 0 ? attachedImages : undefined,
     }
+
+    setLastUserMessage(userMessage)
 
     const shouldUpdateTitle = messages.length === 0
     const titleToSet = shouldUpdateTitle ? generateSessionTitle(userMessage.content) : undefined
@@ -294,6 +349,8 @@ function App() {
     setIsStreaming(true)
     setStreamingContent('')
     setAutoScroll(true)
+
+    abortControllerRef.current = new AbortController()
 
     const conversationMessages = messages.concat(userMessage).map((m) => {
       if (m.images && m.images.length > 0) {
@@ -330,42 +387,51 @@ function App() {
 
     let fullContent = ''
 
-    await streamChatCompletion(
-      settings.apiEndpoint,
-      settings.apiKey,
-      conversationMessages,
-      settings.model,
-      (token) => {
-        fullContent += token
-        setStreamingContent(fullContent)
-      },
-      (error) => {
-        toast.error('Failed to get response', {
-          description: error,
-        })
-        setIsStreaming(false)
-        setStreamingContent('')
-      }
-    )
+    try {
+      await streamChatCompletion(
+        settings.apiEndpoint,
+        settings.apiKey,
+        conversationMessages,
+        settings.model,
+        (token) => {
+          fullContent += token
+          setStreamingContent(fullContent)
+        },
+        (error) => {
+          toast.error('Failed to get response', {
+            description: error,
+          })
+          setIsStreaming(false)
+          setStreamingContent('')
+          abortControllerRef.current = null
+        },
+        abortControllerRef.current.signal
+      )
 
-    if (fullContent) {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: fullContent,
-        timestamp: Date.now(),
-        model: settings.model,
+      if (fullContent) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: fullContent,
+          timestamp: Date.now(),
+          model: settings.model,
+        }
+        updateCurrentSession(session => ({
+          ...session,
+          messages: [...session.messages, assistantMessage],
+          updatedAt: Date.now()
+        }))
       }
-      updateCurrentSession(session => ({
-        ...session,
-        messages: [...session.messages, assistantMessage],
-        updatedAt: Date.now()
-      }))
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return
+      }
+    } finally {
+      setIsStreaming(false)
+      setStreamingContent('')
+      abortControllerRef.current = null
+      textareaRef.current?.focus()
     }
-
-    setIsStreaming(false)
-    setStreamingContent('')
-    textareaRef.current?.focus()
   }
 
   const handleClear = () => {
@@ -591,6 +657,32 @@ function App() {
 
         <div className="border-t border-border bg-card/50 backdrop-blur-sm p-3 md:p-4">
           <div className="max-w-4xl mx-auto">
+            {isStreaming && (
+              <div className="mb-3 flex items-center justify-center gap-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleStop}
+                  className="gap-2"
+                >
+                  <StopCircle className="h-4 w-4" weight="fill" />
+                  Stop Generation
+                </Button>
+              </div>
+            )}
+            {!isStreaming && lastUserMessage && (
+              <div className="mb-3 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  className="gap-2"
+                >
+                  <ArrowClockwise className="h-4 w-4" />
+                  Retry Last Message
+                </Button>
+              </div>
+            )}
             {attachedImages.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg border border-border">
                 {attachedImages.map((image) => (
