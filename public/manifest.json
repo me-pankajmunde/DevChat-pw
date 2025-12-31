@@ -2,23 +2,22 @@
   "name": "DevChat Local",
   "short_name": "DevChat",
   "description": "Developer-focused OpenAI API client for local and custom endpoints",
-  "start_url": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#4fd1c5",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
       "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234fd1c5' width='192' height='192' rx='32'/%3E%3Cpath fill='%23fff' d='M96 48c-26.5 0-48 21.5-48 48s21.5 48 48 48 48-21.5 48-48-21.5-48-48-48zm0 72c-13.2 0-24-10.8-24-24s10.8-24 24-24 24 10.8 24 24-10.8 24-24 24z'/%3E%3Ccircle fill='%23fff' cx='72' cy='84' r='6'/%3E%3Ccircle fill='%23fff' cx='120' cy='84' r='6'/%3E%3Cpath fill='%23fff' d='M72 108c0 13.2 10.8 24 24 24s24-10.8 24-24H72z'/%3E%3C/svg%3E",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     },
     {
       "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234fd1c5' width='512' height='512' rx='96'/%3E%3Cpath fill='%23fff' d='M256 128c-70.7 0-128 57.3-128 128s57.3 128 128 128 128-57.3 128-128-57.3-128-128-128zm0 192c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64z'/%3E%3Ccircle fill='%23fff' cx='192' cy='224' r='16'/%3E%3Ccircle fill='%23fff' cx='320' cy='224' r='16'/%3E%3Cpath fill='%23fff' d='M192 288c0 35.3 28.7 64 64 64s64-28.7 64-64H192z'/%3E%3C/svg%3E",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ]
 }

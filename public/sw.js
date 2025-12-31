@@ -1,4 +1,4 @@
-const CACHE_NAME = 'devchat-local-v1'
+const CACHE_NAME = 'devchat-local-v2'
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -22,7 +22,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   
-  if (url.hostname === 'github.com' || url.pathname.includes('/auth')) {
+  if (
+    url.hostname === 'github.com' || 
+    url.pathname.includes('/auth') ||
+    url.pathname.includes('manifest.json') ||
+    url.protocol === 'chrome-extension:' ||
+    url.protocol === 'moz-extension:'
+  ) {
     return
   }
   
