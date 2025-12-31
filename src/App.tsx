@@ -622,7 +622,20 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <motion.div 
+        className="flex flex-col flex-1 overflow-hidden"
+        initial={false}
+        animate={{ 
+          marginLeft: sidebarOpen && window.innerWidth >= 768 ? 0 : 0,
+          scale: sidebarOpen && window.innerWidth >= 768 ? 1 : 1
+        }}
+        transition={{ 
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+          mass: 0.8
+        }}
+      >
         <header className="border-b border-border bg-card/50 backdrop-blur-sm px-4 md:px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <TooltipProvider>
@@ -646,7 +659,18 @@ function App() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="flex items-center gap-3 min-w-0">
+            <motion.div 
+              className="flex items-center gap-3 min-w-0"
+              animate={{ 
+                scale: sidebarOpen ? 1 : 1.05,
+                x: sidebarOpen ? 0 : 10
+              }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+              }}
+            >
               <svg width="68" height="68" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                 <circle cx="256" cy="256" r="256" fill="#0F172A"/>
                 
@@ -687,7 +711,7 @@ function App() {
                 </text>
               </svg>
             
-            </div>
+            </motion.div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {settings && (
@@ -914,7 +938,7 @@ function App() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
