@@ -87,8 +87,19 @@ export function Message({ message, isStreaming, density = 'normal' }: MessagePro
           </div>
         )}
         <div className={cn('prose prose-invert max-w-none', classes.text)}>
-          <Markdown
-            components={{
+          {isStreaming && !message.content && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex gap-1">
+                <span className="animate-bounce" style={{ animationDelay: '0ms' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '150ms' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '300ms' }}>●</span>
+              </div>
+              <span className={classes.timestamp}>Thinking...</span>
+            </div>
+          )}
+          {message.content && (
+            <Markdown
+              components={{
               code: ({ className, children, ...props }: any) => {
                 const match = /language-(\w+)/.exec(className || '')
                 const codeString = String(children).replace(/\n$/, '')
@@ -167,6 +178,7 @@ export function Message({ message, isStreaming, density = 'normal' }: MessagePro
           >
             {message.content}
           </Markdown>
+          )}
         </div>
         <div className={cn('flex items-center gap-1.5 opacity-40', classes.timestamp, density === 'compact' ? 'mt-1' : 'mt-1.5')}>
           <span>{new Date(message.timestamp).toLocaleTimeString()}</span>

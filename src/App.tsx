@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, ArrowClockwise } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -39,7 +39,6 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const [autoScroll, setAutoScroll] = useState(true)
-  const [lastUserMessage, setLastUserMessage] = useState<Message | null>(null)
 
   const currentSession = sessions.find(s => s.id === currentSessionId)
   const messages = currentSession?.messages || []
@@ -295,144 +294,6 @@ function App() {
     }
   }
 
-  const handleRetry = async (messageId?: string) => {
-    if (!settings || !currentSessionId || !currentSession) return
-
-    let userMessageToRetry: Message | null = null
-    let messagesToKeep: Message[] = []
-
-    if (messageId) {
-      const messageIndex = currentSession.messages.findIndex(m => m.id === messageId)
-      if (messageIndex === -1) return
-
-      messagesToKeep = currentSession.messages.slice(0, messageIndex)
-      userMessageToRetry = currentSession.messages
-        .slice(0, messageIndex + 1)
-        .reverse()
-        .find(m => m.role === 'user') || null
-    } else if (lastUserMessage) {
-      userMessageToRetry = lastUserMessage
-      const messagesWithoutLast = currentSession.messages.filter(m => m.id !== lastUserMessage.id)
-      const lastAssistantIndex = messagesWithoutLast.length - 1
-      const shouldRemoveLastAssistant = lastAssistantIndex >= 0 && messagesWithoutLast[lastAssistantIndex].role === 'assistant'
-      
-      messagesToKeep = shouldRemoveLastAssistant ? messagesWithoutLast.slice(0, -1) : messagesWithoutLast
-    }
-
-    if (!userMessageToRetry) return
-
-    const newUserMessage: Message = {
-      id: `retry-${Date.now()}`,
-      role: 'user',
-      content: userMessageToRetry.content,
-      timestamp: Date.now(),
-      images: userMessageToRetry.images,
-    }
-
-    setLastUserMessage(newUserMessage)
-
-    const shouldUpdateTitle = messagesToKeep.length === 0
-    const titleToSet = shouldUpdateTitle ? generateSessionTitle(newUserMessage.content) : undefined
-
-    const updatedMessages = [...messagesToKeep, newUserMessage]
-
-    updateCurrentSession(session => ({
-      ...session,
-      messages: updatedMessages,
-      updatedAt: Date.now(),
-      ...(titleToSet && { title: titleToSet })
-    }))
-
-    setInput('')
-    setAttachedImages([])
-    setIsStreaming(true)
-    setStreamingContent('')
-    setAutoScroll(true)
-
-    abortControllerRef.current = new AbortController()
-
-    const conversationMessages = updatedMessages.map((m) => {
-      if (m.images && m.images.length > 0) {
-        const contentParts: Array<{type: 'text' | 'image_url', text?: string, image_url?: {url: string, detail?: 'auto'}}> = []
-        
-        if (m.content) {
-          contentParts.push({
-            type: 'text',
-            text: m.content
-          })
-        }
-
-        m.images.forEach((img) => {
-          contentParts.push({
-            type: 'image_url',
-            image_url: {
-              url: img.url,
-              detail: 'auto'
-            }
-          })
-        })
-
-        return {
-          role: m.role,
-          content: contentParts
-        }
-      }
-
-      return {
-        role: m.role,
-        content: m.content,
-      }
-    })
-
-    let fullContent = ''
-
-    try {
-      await streamChatCompletion(
-        settings.apiEndpoint,
-        settings.apiKey,
-        conversationMessages,
-        settings.model,
-        (token) => {
-          fullContent += token
-          setStreamingContent(fullContent)
-        },
-        (error) => {
-          toast.error('Failed to get response', {
-            description: error,
-          })
-          setIsStreaming(false)
-          setStreamingContent('')
-          abortControllerRef.current = null
-        },
-        abortControllerRef.current.signal
-      )
-
-      if (fullContent) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: fullContent,
-          timestamp: Date.now(),
-          model: settings.model,
-        }
-        updateCurrentSession(session => ({
-          ...session,
-          messages: [...session.messages, assistantMessage],
-          updatedAt: Date.now()
-        }))
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return
-      }
-    } finally {
-      setIsStreaming(false)
-      setStreamingContent('')
-      abortControllerRef.current = null
-      textareaRef.current?.focus()
-    }
-  }
-
   const handleSend = async () => {
     if ((!input.trim() && attachedImages.length === 0) || !settings || isStreaming || !currentSessionId) return
 
@@ -443,8 +304,6 @@ function App() {
       timestamp: Date.now(),
       images: attachedImages.length > 0 ? attachedImages : undefined,
     }
-
-    setLastUserMessage(userMessage)
 
     const shouldUpdateTitle = messages.length === 0
     const titleToSet = shouldUpdateTitle ? generateSessionTitle(userMessage.content) : undefined
@@ -751,29 +610,14 @@ function App() {
               (settings.messageDensity || 'normal') === 'compact' ? 'gap-2' : (settings.messageDensity || 'normal') === 'comfortable' ? 'gap-4' : 'gap-3'
             )}>
               {displayMessages.map((message) => (
-                <div key={message.id} className="flex flex-col gap-2">
-                  <MessageComponent message={message} density={settings.messageDensity || 'normal'} />
-                  {message.role === 'assistant' && !isStreaming && (
-                    <div className="flex justify-start ml-9">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRetry(message.id)}
-                        className="gap-2 h-7 text-xs"
-                      >
-                        <ArrowClockwise className="h-3.5 w-3.5" />
-                        Retry
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                <MessageComponent key={message.id} message={message} density={settings.messageDensity || 'normal'} />
               ))}
-              {isStreaming && streamingContent && (
+              {isStreaming && (
                 <MessageComponent
                   message={{
                     id: 'streaming',
                     role: 'assistant',
-                    content: streamingContent,
+                    content: streamingContent || '',
                     timestamp: Date.now(),
                     model: settings.model,
                   }}
