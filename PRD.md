@@ -12,6 +12,13 @@ This is a straightforward chat interface with settings management, message histo
 
 ## Essential Features
 
+### GitHub Authentication
+- **Functionality**: Secure login via GitHub OAuth to access the application
+- **Purpose**: Authenticate users, enable personalized experience, and secure access to cloud sync features
+- **Trigger**: Application launch when user is not authenticated
+- **Progression**: View login screen → Click "Sign in with GitHub" → GitHub OAuth flow → Authenticated → Main app loads
+- **Success criteria**: User successfully authenticates, avatar and username display in header, logout option available
+
 ### API Configuration
 - **Functionality**: Store and validate OpenAI API endpoint, key, and model name
 - **Purpose**: Allow developers to connect to their local or custom OpenAI-compatible API with any supported model
@@ -83,6 +90,9 @@ This is a straightforward chat interface with settings management, message histo
 - **Success criteria**: Private repository created successfully, data synced without errors, conflict resolution works correctly, auto-sync runs on schedule, restore functionality recovers data accurately, sync status displays correctly
 
 ## Edge Case Handling
+- **Unauthenticated State**: Show branded login screen with feature highlights, prevent access to app features until authenticated
+- **Authentication Failure**: Display clear error message if GitHub authentication fails, provide retry option
+- **Session Expiry**: Handle expired authentication gracefully, allow user to re-authenticate without data loss
 - **Missing API Configuration**: Show prominent setup prompt with clear instructions instead of allowing message attempts
 - **API Connection Failure**: Display clear error message with troubleshooting hints (check endpoint, verify key, ensure API is running)
 - **Empty Messages**: Disable send button when input is empty and no images attached to prevent API waste
@@ -194,10 +204,13 @@ Animations should feel technical and precise - like systems activating and data 
   - DotsThree for dropdown menus
   - ArrowsLeftRight for model comparison toggle
   - FileArrowDown for export/import functionality
-  - GithubLogo for GitHub cloud sync
+  - GithubLogo for GitHub cloud sync and authentication
+  - SignOut for logout functionality
   - CloudArrowUp for uploading to cloud
   - CloudArrowDown for downloading from cloud
   - ArrowsClockwise for sync in progress
+  - Lock for security features
+  - CheckCircle for feature highlights
   
 - **Spacing**: 
   - Container padding: p-6 (24px)

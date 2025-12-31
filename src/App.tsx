@@ -9,13 +9,23 @@ import { ExportImportDialog } from '@/components/ExportImportDialog'
 import { CompareView } from '@/components/CompareView'
 import { DataManagementDialog } from '@/components/DataManagementDialog'
 import { GitHubSyncDialog } from '@/components/GitHubSyncDialog'
+import { LoginScreen } from '@/components/LoginScreen'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, GithubLogo } from '@phosphor-icons/react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, GithubLogo, SignOut } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -27,7 +37,18 @@ import { useGitHubAutoSync } from '@/hooks/use-github-sync'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
+interface UserInfo {
+  login: string
+  avatarUrl: string
+  email?: string
+  id: number
+  isOwner: boolean
+}
+
 function App() {
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const [isLoadingUser, setIsLoadingUser] = useState(true)
+  
   const [sessions = [], setSessions] = useKV<ChatSession[]>('chat-sessions', [])
   const [currentSessionId = null, setCurrentSessionId] = useKV<string | null>('current-session-id', null)
   const [folders = [], setFolders] = useKV<SessionFolder[]>('session-folders', [])
@@ -49,6 +70,37 @@ function App() {
 
   useAutoBackup(sessions, folders, settings, true)
   useGitHubAutoSync(sessions, folders, settings, true)
+
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        const userInfo = await window.spark.user()
+        setUser(userInfo)
+      } catch (error) {
+        console.error('Failed to get user info:', error)
+      } finally {
+        setIsLoadingUser(false)
+      }
+    }
+    initUser()
+  }, [])
+
+  const handleLogin = async () => {
+    try {
+      const userInfo = await window.spark.user()
+      if (userInfo) {
+        setUser(userInfo)
+        toast.success(`Welcome, ${userInfo.login}!`)
+      }
+    } catch (error) {
+      toast.error('Failed to authenticate with GitHub')
+    }
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    toast.info('Signed out')
+  }
 
   const generateSessionTitle = (firstMessage: string): string => {
     const cleaned = firstMessage.trim().replace(/\s+/g, ' ')
@@ -470,6 +522,26 @@ function App() {
 
   const displayMessages = messages
 
+  if (isLoadingUser) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <>
+        <Toaster />
+        <LoginScreen onLogin={handleLogin} />
+      </>
+    )
+  }
+
   if (compareMode) {
     return (
       <>
@@ -646,6 +718,32 @@ function App() {
               <Trash className="h-5 w-5" />
             </Button>
             <SettingsDialog settings={settings} onSave={handleSettingsSave} />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.avatarUrl} alt={user.login} />
+                    <AvatarFallback>{user.login.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.login}</p>
+                    {user.email && (
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                  <SignOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
