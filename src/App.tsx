@@ -624,9 +624,44 @@ function App() {
               </Tooltip>
             </TooltipProvider>
             <div className="flex items-center gap-3 min-w-0">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                <path d="M16 2L4 8V16C4 23.732 9.523 28 16 30C22.477 28 28 23.732 28 16V8L16 2Z" fill="currentColor" className="text-primary"/>
-                <path d="M16 8L10 11V16C10 19.866 12.761 22 16 23C19.239 22 22 19.866 22 16V11L16 8Z" fill="currentColor" className="text-background"/>
+              <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                <circle cx="256" cy="256" r="256" fill="#0F172A"/>
+                
+                <g transform="translate(0, -20)">
+                  <path d="M136 144H376C398.091 144 416 161.909 416 184V304C416 326.091 398.091 344 376 344H200L136 400V344C113.909 344 96 326.091 96 304V184C96 161.909 113.909 144 136 144Z" 
+                        stroke="white" 
+                        strokeWidth="24" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"/>
+                  
+                  <path d="M224 200L184 244L224 288" 
+                        stroke="#38BDF8" 
+                        strokeWidth="24" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"/>
+                        
+                  <path d="M288 200L328 244L288 288" 
+                        stroke="#38BDF8" 
+                        strokeWidth="24" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"/>
+                        
+                  <line x1="268" y1="190" x2="244" y2="298" 
+                        stroke="white" 
+                        strokeWidth="16" 
+                        strokeLinecap="round" 
+                        opacity="0.5"/>
+                </g>
+
+                <text x="256" y="445" 
+                      fontFamily="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+                      fontWeight="bold" 
+                      fontSize="64" 
+                      fill="white" 
+                      textAnchor="middle" 
+                      letterSpacing="2">
+                        DevChat
+                </text>
               </svg>
               <div className="min-w-0">
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
