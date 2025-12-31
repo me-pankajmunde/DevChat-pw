@@ -453,6 +453,10 @@ function App() {
     
     updateCurrentSession(session => {
       updatedMessages = [...session.messages, userMessage]
+    let updatedMessages: Message[] = []
+    
+    updateCurrentSession(session => {
+      updatedMessages = [...session.messages, userMessage]
       return {
         ...session,
         messages: updatedMessages,
@@ -461,10 +465,6 @@ function App() {
       }
     })
 
-    setInput('')
-    const currentImages = [...attachedImages]
-    setAttachedImages([])
-    setIsStreaming(true)
     setStreamingContent('')
     setAutoScroll(true)
 
@@ -474,7 +474,7 @@ function App() {
       if (m.images && m.images.length > 0) {
         const contentParts: Array<{type: 'text' | 'image_url', text?: string, image_url?: {url: string, detail?: 'auto'}}> = []
         
-        if (m.content) {
+    const conversationMessages = updatedMessages.map((m) => {
           contentParts.push({
             type: 'text',
             text: m.content
