@@ -216,7 +216,7 @@ function App() {
     )
     const folderName = folderId 
       ? folders.find(f => f.id === folderId)?.name 
-      : 'Uncategorized'
+      : 'General'
     toast.success(`Moved to ${folderName}`)
   }
 
@@ -624,7 +624,7 @@ function App() {
               </Tooltip>
             </TooltipProvider>
             <div className="flex items-center gap-3 min-w-0">
-              <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+              <svg width="68" height="68" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                 <circle cx="256" cy="256" r="256" fill="#0F172A"/>
                 
                 <g transform="translate(0, -20)">
@@ -663,12 +663,7 @@ function App() {
                         DevChat
                 </text>
               </svg>
-              <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
-                  DevChat Local
-                </h1>
-                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Developer-focused OpenAI API client</p>
-              </div>
+            
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -679,28 +674,7 @@ function App() {
                 disabled={isStreaming}
               />
             )}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <SupabaseSyncDialog
-                      sessions={sessions}
-                      folders={folders}
-                      settings={settings}
-                      onDataUpdate={handleDataUpdate}
-                      trigger={
-                        <Button variant="outline" size="icon">
-                          <Database className="h-5 w-5" />
-                        </Button>
-                      }
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Supabase Cloud Sync</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
