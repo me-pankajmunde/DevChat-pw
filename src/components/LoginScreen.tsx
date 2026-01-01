@@ -1,8 +1,50 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { GithubLogo, ChatCircleDots, Lock, CheckCircle } from '@phosphor-icons/react'
+import { GithubLogo, GoogleLogo, ChatCircleDots, Lock, CheckCircle } from '@phosphor-icons/react'
+import { signInWithGitHub, signInWithGoogle } from '@/lib/auth'
+import { toast } from 'sonner'
 
 export function LoginScreen({ onLogin }: { onLogin: () => void }) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<'github' | 'google' | null>(null)
+
+  const handleGitHubLogin = async () => {
+    setIsLoading(true)
+    setLoadingProvider('github')
+    try {
+      await signInWithGitHub()
+      // OAuth will redirect, so this won't be reached unless there's an error
+    } catch (error) {
+      if (error instanceof Error && error.message === 'OAUTH_REDIRECT') {
+        // This is expected - the OAuth flow will redirect
+        return
+      }
+      console.error('GitHub login failed:', error)
+      toast.error('Failed to sign in with GitHub. Please try again.')
+      setIsLoading(false)
+      setLoadingProvider(null)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true)
+    setLoadingProvider('google')
+    try {
+      await signInWithGoogle()
+      // OAuth will redirect, so this won't be reached unless there's an error
+    } catch (error) {
+      if (error instanceof Error && error.message === 'OAUTH_REDIRECT') {
+        // This is expected - the OAuth flow will redirect
+        return
+      }
+      console.error('Google login failed:', error)
+      toast.error('Failed to sign in with Google. Please try again.')
+      setIsLoading(false)
+      setLoadingProvider(null)
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-background" />
@@ -34,7 +76,7 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
               <div className="flex-1">
                 <h3 className="font-medium text-sm mb-1">Secure & Private</h3>
                 <p className="text-xs text-muted-foreground">
-                  Your data is stored locally and synced to your private GitHub repository
+                  Your data is stored locally and optionally synced to your private account
                 </p>
               </div>
             </div>
@@ -64,14 +106,46 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
             </div>
           </div>
           
-          <Button 
-            onClick={onLogin}
-            className="w-full h-12 text-base font-medium gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-            size="lg"
-          >
-            <GithubLogo className="h-5 w-5" weight="fill" />
-            Sign in with GitHub
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              onClick={handleGitHubLogin}
+              disabled={isLoading}
+              className="w-full h-12 text-base font-medium gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all bg-[#24292e] hover:bg-[#1b1f23] text-white"
+              size="lg"
+            >
+              {loadingProvider === 'github' ? (
+                <>
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <GithubLogo className="h-5 w-5" weight="fill" />
+                  Continue with GitHub
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="w-full h-12 text-base font-medium gap-2 shadow-lg hover:shadow-xl transition-all bg-white hover:bg-gray-50 text-gray-900 border border-gray-300"
+              size="lg"
+              variant="outline"
+            >
+              {loadingProvider === 'google' ? (
+                <>
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <GoogleLogo className="h-5 w-5" weight="fill" />
+                  Continue with Google
+                </>
+              )}
+            </Button>
+          </div>
           
           <p className="text-xs text-center text-muted-foreground">
             By signing in, you agree to use your own API credentials and accept responsibility for API usage costs

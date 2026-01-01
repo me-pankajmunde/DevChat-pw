@@ -1,4 +1,5 @@
 import { ChatSession, SessionFolder, ChatSettings } from './types'
+import { kv } from '@/hooks/use-kv'
 
 export interface BackupData {
   version: string
@@ -35,7 +36,7 @@ export async function createBackup(
   }
 
   const backupKey = `${BACKUP_KEY_PREFIX}${backup.timestamp}`
-  await window.spark.kv.set(backupKey, backup)
+  await kv.set(backupKey, backup)
 
   await cleanupOldBackups()
 
@@ -43,12 +44,12 @@ export async function createBackup(
 }
 
 export async function listBackups(): Promise<Array<{ key: string; timestamp: number; version: string }>> {
-  const keys = await window.spark.kv.keys()
+  const keys = await kv.keys()
   const backupKeys = keys.filter(key => key.startsWith(BACKUP_KEY_PREFIX))
   
   const backups = await Promise.all(
     backupKeys.map(async (key) => {
-      const data = await window.spark.kv.get<BackupData>(key)
+      const data = await kv.get<BackupData>(key)
       return {
         key,
         timestamp: data?.timestamp || 0,
@@ -61,12 +62,12 @@ export async function listBackups(): Promise<Array<{ key: string; timestamp: num
 }
 
 export async function restoreBackup(backupKey: string): Promise<BackupData | null> {
-  const backup = await window.spark.kv.get<BackupData>(backupKey)
+  const backup = await kv.get<BackupData>(backupKey)
   return backup || null
 }
 
 export async function deleteBackup(backupKey: string): Promise<void> {
-  await window.spark.kv.delete(backupKey)
+  await kv.delete(backupKey)
 }
 
 async function cleanupOldBackups(): Promise<void> {
@@ -74,7 +75,7 @@ async function cleanupOldBackups(): Promise<void> {
   
   if (backups.length > MAX_BACKUPS) {
     const toDelete = backups.slice(MAX_BACKUPS)
-    await Promise.all(toDelete.map(backup => window.spark.kv.delete(backup.key)))
+    await Promise.all(toDelete.map(backup => kv.delete(backup.key)))
   }
 }
 
@@ -120,9 +121,9 @@ export async function cleanupOldSessions(
 }
 
 export async function exportAllData(): Promise<string> {
-  const sessions = await window.spark.kv.get<ChatSession[]>('chat-sessions') || []
-  const folders = await window.spark.kv.get<SessionFolder[]>('session-folders') || []
-  const settings = await window.spark.kv.get<ChatSettings | null>('chat-settings') || null
+  const sessions = await kv.get<ChatSession[]>('chat-sessions') || []
+  const folders = await kv.get<SessionFolder[]>('session-folders') || []
+  const settings = await kv.get<ChatSettings | null>('chat-settings') || null
 
   const exportData: BackupData = {
     version: CURRENT_VERSION,
@@ -154,13 +155,13 @@ export async function importAllData(jsonData: string): Promise<{
 }
 
 export async function clearAllData(): Promise<void> {
-  await window.spark.kv.delete('chat-sessions')
-  await window.spark.kv.delete('session-folders')
-  await window.spark.kv.delete('chat-settings')
-  await window.spark.kv.delete('current-session-id')
+  await kv.delete('chat-sessions')
+  await kv.delete('session-folders')
+  await kv.delete('chat-settings')
+  await kv.delete('current-session-id')
   
   const backups = await listBackups()
-  await Promise.all(backups.map(backup => window.spark.kv.delete(backup.key)))
+  await Promise.all(backups.map(backup => kv.delete(backup.key)))
 }
 
 export function validateSession(session: ChatSession): boolean {
@@ -187,8 +188,8 @@ export async function repairData(): Promise<{
   sessionsRemoved: number
   foldersRemoved: number
 }> {
-  const sessions = await window.spark.kv.get<ChatSession[]>('chat-sessions') || []
-  const folders = await window.spark.kv.get<SessionFolder[]>('session-folders') || []
+  const sessions = await kv.get<ChatSession[]>('chat-sessions') || []
+  const folders = await kv.get<SessionFolder[]>('session-folders') || []
 
   let sessionsRepaired = 0
   let foldersRepaired = 0
@@ -243,8 +244,8 @@ export async function repairData(): Promise<{
     return fixedFolder
   })
 
-  await window.spark.kv.set('chat-sessions', validSessions)
-  await window.spark.kv.set('session-folders', validFolders)
+  await kv.set('chat-sessions', validSessions)
+  await kv.set('session-folders', validFolders)
 
   return {
     sessionsRepaired,

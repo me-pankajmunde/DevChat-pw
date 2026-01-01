@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { ChatSession, SessionFolder, ChatSettings } from './types'
+import { kv } from '@/hooks/use-kv'
 
 export interface SupabaseConfig {
   url: string
@@ -48,7 +49,7 @@ export async function getSupabaseConfig(): Promise<SupabaseConfig | null> {
   }
   
   try {
-    const config = await window.spark.kv.get<SupabaseConfig>('supabase-config')
+    const config = await kv.get<SupabaseConfig>('supabase-config')
     return config || null
   } catch {
     return null
@@ -56,7 +57,7 @@ export async function getSupabaseConfig(): Promise<SupabaseConfig | null> {
 }
 
 export async function saveSupabaseConfig(config: SupabaseConfig): Promise<void> {
-  await window.spark.kv.set('supabase-config', config)
+  await kv.set('supabase-config', config)
   initializeSupabase(config.url, config.anonKey)
 }
 
@@ -186,7 +187,7 @@ export interface SyncStatus {
 
 export async function getSyncStatus(): Promise<SyncStatus> {
   try {
-    const status = await window.spark.kv.get<SyncStatus>('supabase-sync-status')
+    const status = await kv.get<SyncStatus>('supabase-sync-status')
     return (
       status || {
         lastSyncTime: null,
@@ -206,7 +207,7 @@ export async function getSyncStatus(): Promise<SyncStatus> {
 export async function updateSyncStatus(status: Partial<SyncStatus>): Promise<void> {
   const currentStatus = await getSyncStatus()
   const newStatus = { ...currentStatus, ...status }
-  await window.spark.kv.set('supabase-sync-status', newStatus)
+  await kv.set('supabase-sync-status', newStatus)
 }
 
 export async function detectConflict(localTimestamp: number): Promise<boolean> {
@@ -264,20 +265,20 @@ export function mergeData(
 }
 
 export async function enableAutoSync(intervalMinutes: number): Promise<void> {
-  await window.spark.kv.set('supabase-auto-sync-enabled', true)
-  await window.spark.kv.set('supabase-auto-sync-interval', intervalMinutes)
+  await kv.set('supabase-auto-sync-enabled', true)
+  await kv.set('supabase-auto-sync-interval', intervalMinutes)
 }
 
 export async function disableAutoSync(): Promise<void> {
-  await window.spark.kv.set('supabase-auto-sync-enabled', false)
+  await kv.set('supabase-auto-sync-enabled', false)
 }
 
 export async function isAutoSyncEnabled(): Promise<boolean> {
-  const enabled = await window.spark.kv.get<boolean>('supabase-auto-sync-enabled')
+  const enabled = await kv.get<boolean>('supabase-auto-sync-enabled')
   return enabled || false
 }
 
 export async function getAutoSyncInterval(): Promise<number> {
-  const interval = await window.spark.kv.get<number>('supabase-auto-sync-interval')
+  const interval = await kv.get<number>('supabase-auto-sync-interval')
   return interval || 30
 }

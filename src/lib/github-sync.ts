@@ -1,4 +1,6 @@
 import { ChatSession, SessionFolder, ChatSettings } from './types'
+import { kv } from '@/hooks/use-kv'
+import { getUser } from './auth'
 
 export interface SyncData {
   version: string
@@ -33,7 +35,7 @@ const getDeviceId = (): string => {
 
 export const getSyncStatus = async (): Promise<SyncStatus> => {
   try {
-    const status = await window.spark.kv.get<SyncStatus>('github-sync-status')
+    const status = await kv.get<SyncStatus>('github-sync-status')
     return status || {
       lastSyncTime: null,
       lastSyncSuccess: false,
@@ -54,12 +56,12 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
 
 export const setSyncStatus = async (status: Partial<SyncStatus>): Promise<void> => {
   const current = await getSyncStatus()
-  await window.spark.kv.set('github-sync-status', { ...current, ...status })
+  await kv.set('github-sync-status', { ...current, ...status })
 }
 
 export const checkGitHubAuth = async (): Promise<boolean> => {
   try {
-    const user = await window.spark.user()
+    const user = await getUser()
     return !!(user && user.login)
   } catch {
     return false
@@ -68,7 +70,7 @@ export const checkGitHubAuth = async (): Promise<boolean> => {
 
 export const getRemoteData = async (): Promise<SyncData | null> => {
   try {
-    const user = await window.spark.user()
+    const user = await getUser()
     if (!user || !user.login) throw new Error('Not authenticated')
 
     const response = await fetch(
@@ -103,7 +105,7 @@ export const uploadToGitHub = async (
   settings: ChatSettings | null
 ): Promise<boolean> => {
   try {
-    const user = await window.spark.user()
+    const user = await getUser()
     if (!user || !user.login) throw new Error('Not authenticated')
 
     await setSyncStatus({ syncInProgress: true })
@@ -221,7 +223,7 @@ export const uploadToGitHub = async (
 
 export const downloadFromGitHub = async (): Promise<SyncData | null> => {
   try {
-    const user = await window.spark.user()
+    const user = await getUser()
     if (!user || !user.login) throw new Error('Not authenticated')
 
     await setSyncStatus({ syncInProgress: true })
@@ -320,17 +322,17 @@ export const mergeData = (
 }
 
 export const enableAutoSync = async (intervalMinutes: number = 30): Promise<void> => {
-  await window.spark.kv.set('auto-sync-enabled', true)
-  await window.spark.kv.set('auto-sync-interval', intervalMinutes)
+  await kv.set('auto-sync-enabled', true)
+  await kv.set('auto-sync-interval', intervalMinutes)
 }
 
 export const disableAutoSync = async (): Promise<void> => {
-  await window.spark.kv.set('auto-sync-enabled', false)
+  await kv.set('auto-sync-enabled', false)
 }
 
 export const isAutoSyncEnabled = async (): Promise<boolean> => {
   try {
-    const enabled = await window.spark.kv.get<boolean>('auto-sync-enabled')
+    const enabled = await kv.get<boolean>('auto-sync-enabled')
     return enabled || false
   } catch {
     return false
@@ -339,7 +341,7 @@ export const isAutoSyncEnabled = async (): Promise<boolean> => {
 
 export const getAutoSyncInterval = async (): Promise<number> => {
   try {
-    const interval = await window.spark.kv.get<number>('auto-sync-interval')
+    const interval = await kv.get<number>('auto-sync-interval')
     return interval || 30
   } catch {
     return 30

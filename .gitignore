@@ -32,3 +32,12 @@ pids
 .devcontainer/
 
 .spark-workbench-id
+.spark/
+.github/
+
+# Backend
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/

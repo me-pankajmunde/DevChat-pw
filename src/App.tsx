@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useKV } from '@/hooks/use-kv'
+import { getUser, setUser as saveUser, onAuthStateChange, signOut as authSignOut, type User } from '@/lib/auth'
 import { Message as MessageComponent } from '@/components/Message'
 import { ImageAttachment } from '@/components/ImageAttachment'
 import { SettingsDialog } from '@/components/SettingsDialog'
@@ -43,12 +44,13 @@ interface UserInfo {
   login: string
   avatarUrl: string
   email?: string
-  id: number
+  id: string
   isOwner: boolean
+  provider?: 'github' | 'google'
 }
 
 function App() {
-  const [user, setUser] = useState<UserInfo | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
   
   const [sessions = [], setSessions] = useKV<ChatSession[]>('chat-sessions', [])
@@ -73,10 +75,11 @@ function App() {
   useAutoBackup(sessions, folders, settings, true)
   useSupabaseAutoSync(sessions, folders, settings, true)
 
+  // Initialize user and listen for auth changes
   useEffect(() => {
     const initUser = async () => {
       try {
-        const userInfo = await window.spark.user()
+        const userInfo = await getUser()
         setUser(userInfo)
       } catch (error) {
         console.error('Failed to get user info:', error)
@@ -84,7 +87,18 @@ function App() {
         setIsLoadingUser(false)
       }
     }
+    
     initUser()
+    
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChange((newUser) => {
+      setUser(newUser)
+      if (newUser) {
+        toast.success(`Welcome, ${newUser.login}!`)
+      }
+    })
+    
+    return () => unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -104,19 +118,21 @@ function App() {
     initSupabase()
   }, [])
 
-  const handleLogin = async () => {
-    try {
-      const userInfo = await window.spark.user()
-      if (userInfo) {
-        setUser(userInfo)
-        toast.success(`Welcome, ${userInfo.login}!`)
-      }
-    } catch (error) {
-      toast.error('Failed to authenticate with GitHub')
+  // Apply saved theme and wallpaper on mount
+  useEffect(() => {
+    if (settings?.theme) {
+      applyTheme(settings.theme)
     }
+  }, [settings?.theme])
+
+  const handleLogin = async () => {
+    // OAuth flow is now handled in LoginScreen component
+    // This function is kept for compatibility but not needed
+    // The onAuthStateChange listener will update the user state
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authSignOut()
     setUser(null)
     toast.info('Signed out')
   }
