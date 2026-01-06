@@ -225,13 +225,17 @@ export function SessionSidebar({
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <DotsSixVertical 
                 className={cn(
-                  "h-4 w-4 text-muted-foreground cursor-grab opacity-0 group-hover:opacity-100 transition-opacity",
+                  "h-4 w-4 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity",
+                  isActive ? "text-accent-foreground/70" : "text-muted-foreground",
                   isDragging && "cursor-grabbing opacity-100"
                 )}
                 weight="bold"
               />
               <ChatCircle 
-                className="h-5 w-5 text-muted-foreground" 
+                className={cn(
+                  "h-5 w-5",
+                  isActive ? "text-accent-foreground" : "text-muted-foreground"
+                )}
                 weight={isActive ? 'fill' : 'regular'}
               />
             </div>
@@ -242,12 +246,15 @@ export function SessionSidebar({
               )}>
                 {session.title}
               </p>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <p className="text-xs text-muted-foreground">
+              <div className={cn(
+                "flex items-center gap-2 mt-1 flex-wrap text-xs",
+                isActive ? "text-accent-foreground/90" : "text-muted-foreground"
+              )}>
+                <p>
                   {messageCount} {messageCount === 1 ? 'message' : 'messages'}
                 </p>
-                <span className="text-xs text-muted-foreground">•</span>
-                <p className="text-xs text-muted-foreground">
+                <span>•</span>
+                <p>
                   {formatDistanceToNow(lastMessageTime, { addSuffix: true })}
                 </p>
               </div>
@@ -270,7 +277,10 @@ export function SessionSidebar({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7"
+                    className={cn(
+                      "h-7 w-7",
+                      isActive && "text-accent-foreground hover:bg-accent-foreground/10 hover:text-accent-foreground"
+                    )}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <DotsThree className="h-4 w-4" weight="bold" />

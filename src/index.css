@@ -185,3 +185,21 @@ code, pre {
   border-top: 1px solid var(--border);
   margin: 1rem 0;
 }
+
+/* Glassy Theme Styles */
+:root.theme-glassy .bg-card, 
+:root.theme-glassy .bg-popover, 
+:root.theme-glassy .bg-primary,
+:root.theme-glassy .bg-secondary,
+:root.theme-glassy .bg-muted {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+:root.theme-glassy .bg-primary {
+    border-color: rgb(255 255 255 / 0.2);
+}
+
+/* Make sure text is readable by enforcing some contrast or shadows if needed */
+/* But rely on theme colors first */

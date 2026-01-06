@@ -1,5 +1,6 @@
 export interface ThemeColors {
   name: string
+  type?: 'glassy' | 'solid'
   colors: {
     background: string
     foreground: string
@@ -216,6 +217,56 @@ export const themes: Record<string, ThemeColors> = {
       ring: 'oklch(0.70 0.12 260)',
     },
   },
+  'glassy-dark': {
+    name: 'Glassy Dark',
+    type: 'glassy',
+    colors: {
+      background: 'oklch(0.1 0.02 240 / 0.8)',
+      foreground: 'oklch(0.98 0 0)',
+      card: 'oklch(0.15 0.02 240 / 0.4)',
+      cardForeground: 'oklch(0.98 0 0)',
+      popover: 'oklch(0.15 0.02 240 / 0.6)',
+      popoverForeground: 'oklch(0.98 0 0)',
+      primary: 'oklch(0.6 0.15 240 / 0.8)',
+      primaryForeground: 'oklch(1 0 0)',
+      secondary: 'oklch(0.25 0.05 240 / 0.5)',
+      secondaryForeground: 'oklch(0.98 0 0)',
+      muted: 'oklch(0.2 0.02 240 / 0.4)',
+      mutedForeground: 'oklch(0.7 0 0)',
+      accent: 'oklch(0.6 0.15 280 / 0.6)',
+      accentForeground: 'oklch(1 0 0)',
+      destructive: 'oklch(0.6 0.2 25 / 0.8)',
+      destructiveForeground: 'oklch(1 0 0)',
+      border: 'oklch(0.3 0.02 240 / 0.3)',
+      input: 'oklch(0.2 0.02 240 / 0.4)',
+      ring: 'oklch(0.6 0.15 240 / 0.8)',
+    },
+  },
+  'glassy-light': {
+    name: 'Glassy Light',
+    type: 'glassy',
+    colors: {
+      background: 'oklch(0.95 0.01 240 / 0.85)',
+      foreground: 'oklch(0.15 0.02 240)',
+      card: 'oklch(0.98 0.01 240 / 0.5)',
+      cardForeground: 'oklch(0.15 0.02 240)',
+      popover: 'oklch(0.98 0.01 240 / 0.7)',
+      popoverForeground: 'oklch(0.15 0.02 240)',
+      primary: 'oklch(0.55 0.15 240 / 0.8)',
+      primaryForeground: 'oklch(1 0 0)',
+      secondary: 'oklch(0.9 0.02 240 / 0.5)',
+      secondaryForeground: 'oklch(0.15 0.02 240)',
+      muted: 'oklch(0.9 0.01 240 / 0.5)',
+      mutedForeground: 'oklch(0.4 0.02 240)',
+      accent: 'oklch(0.55 0.15 280 / 0.6)',
+      accentForeground: 'oklch(1 0 0)',
+      destructive: 'oklch(0.6 0.2 25 / 0.8)',
+      destructiveForeground: 'oklch(1 0 0)',
+      border: 'oklch(0.8 0.02 240 / 0.4)',
+      input: 'oklch(0.9 0.02 240 / 0.5)',
+      ring: 'oklch(0.55 0.15 240 / 0.8)',
+    },
+  },
 }
 
 export function applyTheme(themeId: string) {
@@ -223,6 +274,13 @@ export function applyTheme(themeId: string) {
   if (!theme) return
 
   const root = document.documentElement
+  
+  if (theme.type === 'glassy') {
+    root.classList.add('theme-glassy')
+  } else {
+    root.classList.remove('theme-glassy')
+  }
+
   root.style.setProperty('--background', theme.colors.background)
   root.style.setProperty('--foreground', theme.colors.foreground)
   root.style.setProperty('--card', theme.colors.card)

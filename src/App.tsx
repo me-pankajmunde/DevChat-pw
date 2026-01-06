@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useKV } from '@/hooks/use-kv'
-import { getUser, setUser as saveUser, onAuthStateChange, signOut as authSignOut, type User } from '@/lib/auth'
+// import { getUser, setUser as saveUser, onAuthStateChange, signOut as authSignOut, type User } from '@/lib/auth'
 import { Message as MessageComponent } from '@/components/Message'
 import { ImageAttachment } from '@/components/ImageAttachment'
 import { SettingsDialog } from '@/components/SettingsDialog'
@@ -10,7 +10,7 @@ import { ExportImportDialog } from '@/components/ExportImportDialog'
 import { CompareView } from '@/components/CompareView'
 import { DataManagementDialog } from '@/components/DataManagementDialog'
 import { SupabaseSyncDialog } from '@/components/SupabaseSyncDialog'
-import { LoginScreen } from '@/components/LoginScreen'
+// import { LoginScreen } from '@/components/LoginScreen'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, HardDrives, SignOut } from '@phosphor-icons/react'
+import { PaperPlaneRight, Trash, WarningCircle, Image as ImageIcon, Sidebar as SidebarIcon, FileArrowDown, ArrowsLeftRight, StopCircle, Database, HardDrives /*, SignOut */ } from '@phosphor-icons/react'
 import { Message, ChatSettings, ImageAttachment as ImageAttachmentType, ChatSession, SessionFolder } from '@/lib/types'
 import { streamChatCompletion } from '@/lib/api'
 import { registerServiceWorker } from '@/lib/pwa'
@@ -50,8 +50,8 @@ interface UserInfo {
 }
 
 function App() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoadingUser, setIsLoadingUser] = useState(true)
+  // const [user, setUser] = useState<User | null>(null)
+  // const [isLoadingUser, setIsLoadingUser] = useState(true)
   
   const [sessions = [], setSessions] = useKV<ChatSession[]>('chat-sessions', [])
   const [currentSessionId = null, setCurrentSessionId] = useKV<string | null>('current-session-id', null)
@@ -76,30 +76,30 @@ function App() {
   useSupabaseAutoSync(sessions, folders, settings, true)
 
   // Initialize user and listen for auth changes
-  useEffect(() => {
-    const initUser = async () => {
-      try {
-        const userInfo = await getUser()
-        setUser(userInfo)
-      } catch (error) {
-        console.error('Failed to get user info:', error)
-      } finally {
-        setIsLoadingUser(false)
-      }
-    }
-    
-    initUser()
-    
-    // Listen for auth state changes
-    const unsubscribe = onAuthStateChange((newUser) => {
-      setUser(newUser)
-      if (newUser) {
-        toast.success(`Welcome, ${newUser.login}!`)
-      }
-    })
-    
-    return () => unsubscribe()
-  }, [])
+  // useEffect(() => {
+  //   const initUser = async () => {
+  //     try {
+  //       const userInfo = await getUser()
+  //       setUser(userInfo)
+  //     } catch (error) {
+  //       console.error('Failed to get user info:', error)
+  //     } finally {
+  //       setIsLoadingUser(false)
+  //     }
+  //   }
+  //   
+  //   initUser()
+  //   
+  //   // Listen for auth state changes
+  //   const unsubscribe = onAuthStateChange((newUser) => {
+  //     setUser(newUser)
+  //     if (newUser) {
+  //       toast.success(`Welcome, ${newUser.login}!`)
+  //     }
+  //   })
+  //   
+  //   return () => unsubscribe()
+  // }, [])
 
   useEffect(() => {
     const initSupabase = async () => {
@@ -125,17 +125,17 @@ function App() {
     }
   }, [settings?.theme])
 
-  const handleLogin = async () => {
-    // OAuth flow is now handled in LoginScreen component
-    // This function is kept for compatibility but not needed
-    // The onAuthStateChange listener will update the user state
-  }
+  // const handleLogin = async () => {
+  //   // OAuth flow is now handled in LoginScreen component
+  //   // This function is kept for compatibility but not needed
+  //   // The onAuthStateChange listener will update the user state
+  // }
 
-  const handleLogout = async () => {
-    await authSignOut()
-    setUser(null)
-    toast.info('Signed out')
-  }
+  // const handleLogout = async () => {
+  //   await authSignOut()
+  //   setUser(null)
+  //   toast.info('Signed out')
+  // }
 
   const generateSessionTitle = (firstMessage: string): string => {
     const cleaned = firstMessage.trim().replace(/\s+/g, ' ')
@@ -557,25 +557,25 @@ function App() {
 
   const displayMessages = messages
 
-  if (isLoadingUser) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  // if (isLoadingUser) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen bg-background">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+  //         <p className="text-muted-foreground">Loading...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
-  if (!user) {
-    return (
-      <>
-        <Toaster />
-        <LoginScreen onLogin={handleLogin} />
-      </>
-    )
-  }
+  // if (!user) {
+  //   return (
+  //     <>
+  //       <Toaster />
+  //       <LoginScreen onLogin={handleLogin} />
+  //     </>
+  //   )
+  // }
 
   if (compareMode) {
     return (
@@ -587,7 +587,13 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="relative flex h-screen bg-background text-foreground overflow-hidden">
+      {settings?.wallpaper && settings.wallpaper !== 'none' && (
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={getWallpaperStyle(settings.wallpaper, settings.customWallpaperUrl, settings.wallpaperOpacity, settings.wallpaperBlur)}
+        />
+      )}
       <Toaster />
       
       <AnimatePresence mode="wait">
@@ -613,7 +619,7 @@ function App() {
               }}
               className={cn(
                 "w-80 shrink-0 border-r border-border z-50",
-                "md:relative fixed inset-y-0 left-0 bg-background"
+                "md:relative fixed inset-y-0 left-0"
               )}
             >
               <SessionSidebar
@@ -815,7 +821,7 @@ function App() {
             </Button>
             <SettingsDialog settings={settings} onSave={handleSettingsSave} />
             
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-9 w-9">
@@ -839,11 +845,11 @@ function App() {
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
         </header>
 
-        <div className="flex-1 overflow-hidden relative" style={settings?.wallpaper && settings.wallpaper !== 'none' ? getWallpaperStyle(settings.wallpaper, settings.customWallpaperUrl, settings.wallpaperOpacity, settings.wallpaperBlur) : {}}>
+        <div className="flex-1 overflow-hidden relative">
         {!settings ? (
           <div className="flex items-center justify-center h-full p-6">
             <Alert className="max-w-md">

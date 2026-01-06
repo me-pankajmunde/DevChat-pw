@@ -18,11 +18,16 @@ const defaultTheme = {
     padding: "2rem",
   },
   extend: {
-    screens: {
-      coarse: { raw: "(pointer: coarse)" },
-      fine: { raw: "(pointer: fine)" },
-      pwa: { raw: "(display-mode: standalone)" },
-    },
+    // Custom media query screens removed - these cause CSS parsing errors
+    // Use @media queries directly in CSS instead:
+    // @media (pointer: coarse) { ... }
+    // @media (pointer: fine) { ... }
+    // @media (display-mode: standalone) { ... }
+    // screens: {
+    //   coarse: { raw: "(pointer: coarse)" },
+    //   fine: { raw: "(pointer: fine)" },
+    //   pwa: { raw: "(display-mode: standalone)" },
+    // },
     colors: {
       neutral: {
         1: "var(--color-neutral-1)",
