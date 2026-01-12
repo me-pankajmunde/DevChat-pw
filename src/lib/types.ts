@@ -34,6 +34,7 @@ export interface SessionFolder {
 
 export type MessageDensity = 'compact' | 'normal' | 'comfortable'
 export type Wallpaper = 'none' | 'dots' | 'grid' | 'waves' | 'geometric' | 'bubbles' | 'diagonal' | 'hexagon' | 'custom'
+export type ApiProvider = 'openai' | 'ollama'
 
 export interface ChatSettings {
   apiEndpoint: string
@@ -45,6 +46,7 @@ export interface ChatSettings {
   customWallpaperUrl?: string
   wallpaperOpacity?: number
   wallpaperBlur?: number
+  provider?: ApiProvider
 }
 
 export type OpenAIMessageContent = string | Array<{

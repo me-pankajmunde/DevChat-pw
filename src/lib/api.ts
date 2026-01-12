@@ -1,4 +1,5 @@
 import { OpenAIMessage } from './types'
+import { ollamaChatCompletion } from './ollama'
 
 function normalizeEndpoint(endpoint: string): string {
   return endpoint.replace(/\/+$/, '')
@@ -27,8 +28,29 @@ export async function streamChatCompletion(
   model: string,
   onToken: (token: string) => void,
   onError: (error: string) => void,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
+  provider?: 'openai' | 'ollama'
 ) {
+  // If provider is ollama, use ollama-specific API
+  if (provider === 'ollama') {
+    // Convert OpenAI format to simple format for Ollama
+    const ollamaMessages = messages.map(msg => ({
+      role: msg.role === 'system' ? 'system' : msg.role,
+      content: typeof msg.content === 'string' ? msg.content : 
+        msg.content.map(c => c.type === 'text' ? c.text : '').join(''),
+    }))
+    
+    return ollamaChatCompletion(
+      endpoint,
+      model,
+      ollamaMessages,
+      onToken,
+      onError,
+      abortSignal
+    )
+  }
+
+  // OpenAI-compatible API
   try {
     if (!messages || messages.length === 0) {
       throw new Error('Messages array is empty')

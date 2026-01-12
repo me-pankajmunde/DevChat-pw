@@ -492,7 +492,8 @@ function App() {
           setStreamingContent('')
           abortControllerRef.current = null
         },
-        abortControllerRef.current.signal
+        abortControllerRef.current.signal,
+        settings.provider
       )
 
       if (fullContent) {

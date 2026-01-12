@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { ChatSettings } from '@/lib/types'
 import { fetchModels } from '@/lib/api'
+import { fetchOllamaModels } from '@/lib/ollama'
 import { Spinner } from '@phosphor-icons/react'
 
 interface ModelSelectorProps {
@@ -17,12 +18,22 @@ export function ModelSelector({ settings, onModelChange, disabled }: ModelSelect
 
   useEffect(() => {
     loadModels()
-  }, [settings.apiEndpoint, settings.apiKey])
+  }, [settings.apiEndpoint, settings.apiKey, settings.provider])
 
   const loadModels = async () => {
     setLoading(true)
-    const availableModels = await fetchModels(settings.apiEndpoint, settings.apiKey)
-    setModels(availableModels)
+    try {
+      let availableModels: string[]
+      if (settings.provider === 'ollama') {
+        availableModels = await fetchOllamaModels(settings.apiEndpoint)
+      } else {
+        availableModels = await fetchModels(settings.apiEndpoint, settings.apiKey)
+      }
+      setModels(availableModels)
+    } catch (error) {
+      console.error('Error loading models:', error)
+      setModels([])
+    }
     setLoading(false)
   }
 

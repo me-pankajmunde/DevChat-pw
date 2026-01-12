@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider'
 import { Separator } from '@/components/ui/separator'
 import { Gear, CheckCircle, WarningCircle, Image as ImageIcon, X } from '@phosphor-icons/react'
-import { ChatSettings, MessageDensity, Wallpaper } from '@/lib/types'
+import { ChatSettings, MessageDensity, Wallpaper, ApiProvider } from '@/lib/types'
 import { testConnection, fetchModels } from '@/lib/api'
+import { testOllamaConnection, fetchOllamaModels } from '@/lib/ollama'
 import { themes, applyTheme } from '@/lib/themes'
 import { wallpapers, getWallpaperStyle } from '@/lib/wallpapers'
+import { OllamaDialog } from '@/components/OllamaDialog'
 import { toast } from 'sonner'
 
 interface SettingsDialogProps {
@@ -20,6 +22,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const [open, setOpen] = useState(false)
+  const [provider, setProvider] = useState<ApiProvider>(settings?.provider || 'openai')
   const [apiEndpoint, setApiEndpoint] = useState(settings?.apiEndpoint || 'http://127.0.0.1:5001/v1')
   const [apiKey, setApiKey] = useState(settings?.apiKey || 'YOUR_TOKEN')
   const [model, setModel] = useState(settings?.model || 'gpt-4o')
@@ -36,15 +39,27 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (open && apiEndpoint && apiKey) {
-      loadAvailableModels()
+    if (open && apiEndpoint) {
+      if (provider === 'ollama' || (provider === 'openai' && apiKey)) {
+        loadAvailableModels()
+      }
     }
-  }, [open, apiEndpoint, apiKey])
+  }, [open, apiEndpoint, apiKey, provider])
 
   const loadAvailableModels = async () => {
     setLoadingModels(true)
-    const availableModels = await fetchModels(apiEndpoint, apiKey)
-    setModels(availableModels)
+    try {
+      if (provider === 'ollama') {
+        const availableModels = await fetchOllamaModels(apiEndpoint)
+        setModels(availableModels)
+      } else {
+        const availableModels = await fetchModels(apiEndpoint, apiKey)
+        setModels(availableModels)
+      }
+    } catch (error) {
+      console.error('Error loading models:', error)
+      setModels([])
+    }
     setLoadingModels(false)
   }
 
@@ -52,7 +67,13 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
     setTesting(true)
     setTestResult(null)
     
-    const result = await testConnection(apiEndpoint, apiKey)
+    let result = false
+    if (provider === 'ollama') {
+      result = await testOllamaConnection(apiEndpoint)
+    } else {
+      result = await testConnection(apiEndpoint, apiKey)
+    }
+    
     setTestResult(result ? 'success' : 'error')
     setTesting(false)
 
@@ -62,8 +83,32 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
   }
 
   const handleSave = () => {
-    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper, customWallpaperUrl, wallpaperOpacity, wallpaperBlur })
+    onSave({ apiEndpoint, apiKey, model, theme, messageDensity, wallpaper, customWallpaperUrl, wallpaperOpacity, wallpaperBlur, provider })
     setOpen(false)
+  }
+
+  const handleProviderChange = (newProvider: ApiProvider) => {
+    setProvider(newProvider)
+    setTestResult(null)
+    setModels([])
+    
+    if (newProvider === 'ollama') {
+      setApiEndpoint('http://localhost:11434')
+      setApiKey('') // Ollama doesn't need an API key
+    } else {
+      setApiEndpoint('http://127.0.0.1:5001/v1')
+      setApiKey('YOUR_TOKEN')
+    }
+  }
+
+  const handleOllamaModelSelect = (url: string, selectedModel: string) => {
+    setApiEndpoint(url)
+    setModel(selectedModel)
+    setProvider('ollama')
+    setApiKey('')
+    
+    // Reload models from this server
+    loadAvailableModels()
   }
 
   const handleThemeChange = (newTheme: string) => {
@@ -128,24 +173,51 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
+            <Label htmlFor="provider">API Provider</Label>
+            <Select value={provider} onValueChange={(value) => handleProviderChange(value as ApiProvider)}>
+              <SelectTrigger id="provider">
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI Compatible API</SelectItem>
+                <SelectItem value="ollama">Ollama (Local Models)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {provider === 'ollama' 
+                ? 'Run local AI models with Ollama' 
+                : 'Use OpenAI or compatible API endpoints'}
+            </p>
+          </div>
+
+          {provider === 'ollama' && (
+            <div className="flex justify-center">
+              <OllamaDialog onSelectModel={handleOllamaModelSelect} />
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
             <Label htmlFor="api-endpoint">API Endpoint</Label>
             <Input
               id="api-endpoint"
-              placeholder="http://127.0.0.1:5001/v1"
+              placeholder={provider === 'ollama' ? 'http://localhost:11434' : 'http://127.0.0.1:5001/v1'}
               value={apiEndpoint}
               onChange={(e) => setApiEndpoint(e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="api-key">API Key</Label>
-            <Input
-              id="api-key"
-              type="password"
-              placeholder="YOUR_TOKEN"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-          </div>
+
+          {provider === 'openai' && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="api-key">API Key</Label>
+              <Input
+                id="api-key"
+                type="password"
+                placeholder="YOUR_TOKEN"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="model">Model</Label>
             {models.length > 0 ? (
@@ -173,8 +245,12 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             {loadingModels && (
               <p className="text-xs text-muted-foreground">Loading models...</p>
             )}
-            {models.length === 0 && !loadingModels && apiEndpoint && apiKey && (
-              <p className="text-xs text-muted-foreground">Test connection to load models</p>
+            {models.length === 0 && !loadingModels && apiEndpoint && (
+              <p className="text-xs text-muted-foreground">
+                {provider === 'ollama' 
+                  ? 'Test connection to load models or use Ollama Dialog' 
+                  : 'Test connection to load models'}
+              </p>
             )}
           </div>
 
@@ -430,7 +506,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
             <Button
               variant="outline"
               onClick={handleTest}
-              disabled={testing || !apiEndpoint || !apiKey}
+              disabled={testing || !apiEndpoint || (provider === 'openai' && !apiKey)}
               className="flex-1"
             >
               {testing ? 'Testing...' : 'Test Connection'}
@@ -446,7 +522,7 @@ export function SettingsDialog({ settings, onSave }: SettingsDialogProps) {
               </div>
             )}
           </div>
-          <Button onClick={handleSave} disabled={!apiEndpoint || !apiKey || !model}>
+          <Button onClick={handleSave} disabled={!apiEndpoint || !model || (provider === 'openai' && !apiKey)}>
             Save Settings
           </Button>
         </div>
